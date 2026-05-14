@@ -21,7 +21,9 @@ import { BrandLogo } from './BrandLogo';
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const pro = useInvoicyPro();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() =>
+    localStorage.getItem('invoicy_sidebar_collapsed') === 'true'
+  );
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/app' },
@@ -40,7 +42,11 @@ export const AppLayout: React.FC = () => {
       >
         {/* Toggle Button */}
         <button 
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => {
+            const next = !isCollapsed;
+            setIsCollapsed(next);
+            localStorage.setItem('invoicy_sidebar_collapsed', String(next));
+          }}
           className="absolute -right-3 top-24 w-6 h-6 bg-flame rounded-full flex items-center justify-center text-abyssal shadow-xl z-50 hover:scale-110 active:scale-95 transition-all"
         >
           {isCollapsed ? <ChevronRight size={14} strokeWidth={3} /> : <ChevronLeft size={14} strokeWidth={3} />}

@@ -148,18 +148,25 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
             icon={Hash} 
           />
           <div className="grid grid-cols-2 gap-4">
-            <Input 
-              label="Issue Date" 
-              type="date" 
-              value={data.date} 
-              onChange={(v: string) => updateField('date', v)} 
+            <Input
+              label="Issue Date"
+              type="date"
+              value={data.date}
+              onChange={(v: string) => updateField('date', v)}
             />
-            <Input 
-              label="Due Date" 
-              type="date" 
-              value={data.dueDate} 
-              onChange={(v: string) => updateField('dueDate', v)} 
-            />
+            <div>
+              <Input
+                label="Due Date"
+                type="date"
+                value={data.dueDate}
+                onChange={(v: string) => updateField('dueDate', v)}
+              />
+              {data.dueDate && data.date && data.dueDate < data.date && (
+                <p className="text-[10px] font-bold uppercase tracking-widest text-truffle mt-1.5 ml-1">
+                  Due date is before issue date
+                </p>
+              )}
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

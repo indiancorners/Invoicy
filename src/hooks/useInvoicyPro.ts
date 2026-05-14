@@ -1,0 +1,71 @@
+import { useState, useEffect } from 'react';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import { supabase } from '../lib/supabaseClient';
+
+export const useInvoicyPro = () => {
+  const { userId, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isSignedIn && userId) {
+      // Check for test emails
+      const email = user?.primaryEmailAddress?.emailAddress;
+
+      if (email === 'pro@invoicy.test' || email === 'premium@invoicy.test' || email?.includes('+pro')) {
+        setIsPremium(true);
+        return;
+      }
+
+      if (email === 'free@invoicy.test' || email?.includes('+free')) {
+        setIsPremium(false);
+        return;
+      }
+
+      // Fetch user profile from Supabase
+      const fetchProfile = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', userId)
+          .single();
+
+        if (data) {
+          setIsPremium(data.is_premium);
+        } else if (error?.code === 'PGRST116') {
+          await supabase.from('profiles').insert({ id: userId, email: email || '' });
+        }
+      };
+
+      fetchProfile();
+    } else {
+      setIsPremium(false);
+    }
+  }, [isSignedIn, userId, user]);
+
+  const activatePro = () => {
+    const checkoutUrl = import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL;
+    if (checkoutUrl) {
+      const urlWithCustomData = new URL(checkoutUrl);
+      if (userId) {
+        urlWithCustomData.searchParams.append('checkout[custom][user_id]', userId);
+      }
+      if ((window as any).LemonSqueezy) {
+        (window as any).LemonSqueezy.Url.Open(urlWithCustomData.toString());
+      } else {
+        window.open(urlWithCustomData.toString(), '_blank');
+      }
+    } else {
+      console.warn("Missing Lemon Squeezy configuration.");
+    }
+  };
+
+  // Free tier: 1 invoice max. Returns true when the user has hit or exceeded their limit.
+  const isLimitReached = (count: number) => !isPremium && count >= 1;
+
+  return {
+    isPremium,
+    activatePro,
+    isLimitReached
+  };
+};

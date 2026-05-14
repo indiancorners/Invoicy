@@ -19,7 +19,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
     switch (data.theme) {
       case 'minimalist':
         return (
-          <div className="flex flex-col h-full bg-white text-black p-12" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+          <div className="flex flex-col h-full bg-white text-black p-12" style={{ fontFamily: '"DM Sans", Helvetica, Arial, sans-serif' }}>
             <div className="flex justify-between items-end border-b-2 border-black pb-8 mb-12">
               <div className="flex items-center gap-6">
                 {data.sender.logo && <img src={data.sender.logo} alt="Logo" className="w-24 h-24 object-contain" />}

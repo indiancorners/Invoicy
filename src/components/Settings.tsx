@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Globe, Shield, Save } from 'lucide-react';
+import { User, Globe, Shield, Save, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Settings: React.FC = () => {
@@ -36,6 +36,7 @@ export const Settings: React.FC = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSavedStatus(true);
+    toast.success('Profile saved.');
     setTimeout(() => setSavedStatus(false), 2000);
   };
 
@@ -55,14 +56,18 @@ export const Settings: React.FC = () => {
                </div>
                <div>
                   <h3 className="text-lg font-bold leading-none uppercase tracking-tight">Business Profile</h3>
-                  <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Manage your studio identity and defaults</p>
+                  <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Manage your business profile and billing defaults</p>
                </div>
             </div>
-            <button 
+            <button
               type="submit"
               className="flex items-center gap-2 bg-abyssal text-white px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-black active:scale-95"
             >
-              {savedStatus ? "Identity Confirmed" : "Save Profile"} <Save size={14} />
+              {savedStatus ? (
+                <><CheckCircle2 size={14} className="text-flame" /> Saved</>
+              ) : (
+                <><Save size={14} /> Save Profile</>
+              )}
             </button>
           </div>
 
@@ -70,8 +75,8 @@ export const Settings: React.FC = () => {
              <div className="space-y-6">
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3 block">From: Business Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={profile.name}
                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                     className="w-full bg-palladian/30 border border-transparent focus:bg-white focus:border-flame py-3 px-4 rounded-xl outline-none font-bold text-[13px] transition-all uppercase tracking-widest"
@@ -79,8 +84,8 @@ export const Settings: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3 block">Professional Email</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     value={profile.email}
                     onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                     className="w-full bg-palladian/30 border border-transparent focus:bg-white focus:border-flame py-3 px-4 rounded-xl outline-none font-bold text-[13px] transition-all uppercase tracking-widest"
@@ -88,19 +93,19 @@ export const Settings: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3 block">Business Contact</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                     className="w-full bg-palladian/30 border border-transparent focus:bg-white focus:border-flame py-3 px-4 rounded-xl outline-none font-bold text-[13px] transition-all uppercase tracking-widest"
                   />
                 </div>
              </div>
-             
+
              <div className="space-y-6">
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3 block">Registered Address</label>
-                  <textarea 
+                  <textarea
                     rows={3}
                     value={profile.address}
                     onChange={(e) => setProfile({ ...profile, address: e.target.value })}
@@ -110,8 +115,8 @@ export const Settings: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3 block">VAT/GST ID</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={profile.gst || ''}
                       onChange={(e) => setProfile({ ...profile, gst: e.target.value })}
                       className="w-full bg-palladian/30 border border-transparent focus:bg-white focus:border-flame py-3 px-4 rounded-xl outline-none font-bold text-[13px] transition-all uppercase tracking-widest"
@@ -119,7 +124,7 @@ export const Settings: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3 block">Base Currency</label>
-                    <select 
+                    <select
                       value={profile.currency}
                       onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
                       className="w-full bg-palladian/30 border border-transparent focus:bg-white focus:border-flame py-3 px-4 rounded-xl outline-none font-bold text-[13px] transition-all uppercase tracking-widest"
@@ -141,35 +146,35 @@ export const Settings: React.FC = () => {
               <Globe className="text-abyssal" />
             </div>
             <div>
-               <h3 className="text-lg font-bold leading-none uppercase tracking-tight">Integrations & Linking</h3>
-               <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Connect your professional architecture</p>
+               <h3 className="text-lg font-bold leading-none uppercase tracking-tight">Integrations</h3>
+               <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">External connections — coming soon</p>
             </div>
           </div>
           <div className="space-y-4">
              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-palladian/10 rounded-xl border border-oatmeal/20 gap-4">
                 <div>
-                   <p className="font-bold text-[11px] uppercase tracking-widest text-abyssal/80">Database Architecture</p>
-                   <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Not Linked (Prototype Mode)</p>
+                   <p className="font-bold text-[11px] uppercase tracking-widest text-abyssal/80">Supabase Cloud Sync</p>
+                   <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Active — data synced via authenticated session</p>
                 </div>
-                <button 
+                <button
                   type="button"
-                  onClick={() => toast.info('Database linking is available in the Pro backend phase.')}
-                  className="bg-abyssal text-white px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-lg"
+                  disabled
+                  className="bg-abyssal/40 text-white/50 px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-not-allowed opacity-50 select-none"
                 >
-                  Link Database
+                  Connected
                 </button>
              </div>
              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-palladian/10 rounded-xl border border-oatmeal/20 gap-4">
                 <div>
-                   <p className="font-bold text-[11px] uppercase tracking-widest text-abyssal/80">Pro Authentication</p>
-                   <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Standard Mock Auth Active</p>
+                   <p className="font-bold text-[11px] uppercase tracking-widest text-abyssal/80">Clerk Authentication</p>
+                   <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Active — signed in via Clerk</p>
                 </div>
-                <button 
+                <button
                   type="button"
-                  onClick={() => toast.info('Google Auth linking is available in the Pro backend phase.')}
-                  className="bg-white border border-neutral-200 text-abyssal px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:shadow-lg transition-all active:scale-95"
+                  disabled
+                  className="bg-white/50 border border-neutral-200 text-abyssal/40 px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-not-allowed opacity-50 select-none"
                 >
-                  Link Google Auth
+                  Active
                 </button>
              </div>
           </div>
@@ -187,8 +192,8 @@ export const Settings: React.FC = () => {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-palladian/20 rounded-xl border border-oatmeal/30 gap-4">
              <div>
-                <p className="font-bold text-[13px] uppercase tracking-tight">Clear Business History</p>
-                <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">This will delete all local invoices permanently.</p>
+                <p className="font-bold text-[13px] uppercase tracking-tight">Clear Local Data</p>
+                <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">This will delete all locally stored invoice data permanently.</p>
              </div>
              {wipeConfirm ? (
                <div className="flex items-center gap-2">
@@ -203,12 +208,12 @@ export const Settings: React.FC = () => {
                    type="button"
                    onClick={() => {
                      localStorage.removeItem('invoicy_vault');
-                     toast.success('Vault wiped. Reloading...');
+                     toast.success('Local data cleared. Reloading...');
                      setTimeout(() => window.location.reload(), 800);
                    }}
                    className="bg-truffle text-white px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-truffle/20"
                  >
-                   Yes, Wipe Everything
+                   Yes, Clear Everything
                  </button>
                </div>
              ) : (
@@ -217,7 +222,7 @@ export const Settings: React.FC = () => {
                  onClick={() => setWipeConfirm(true)}
                  className="bg-truffle text-white px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-truffle/20"
                >
-                 Wipe Data
+                 Clear Data
                </button>
              )}
           </div>
@@ -226,4 +231,3 @@ export const Settings: React.FC = () => {
     </div>
   );
 };
-

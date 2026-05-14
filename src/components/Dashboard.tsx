@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { InvoiceData } from '../types';
-import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, DollarSign, ArrowUpRight, Zap, Target, Layout, Mail, Phone, MapPin } from 'lucide-react';
+import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, DollarSign, ArrowUpRight, Zap, Target, Layout, Mail, Phone, MapPin, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,9 +12,10 @@ interface DashboardProps {
   invoices: InvoiceData[];
   onDelete: (id: string) => void;
   isLoading: boolean;
+  fetchError?: string | null;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoading }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoading, fetchError }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'sent' | 'paid'>('all');
@@ -41,6 +42,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
   const calculateTotal = (inv: InvoiceData) => {
     return inv.items.reduce((sum, item) => sum + item.quantity * item.price, 0) * (1 + inv.taxRate / 100);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-palladian p-6 md:p-12 font-sans text-abyssal">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-3">
+              <div className="h-10 w-48 bg-oatmeal/30 animate-pulse rounded-xl" />
+              <div className="h-3 w-64 bg-oatmeal/20 animate-pulse rounded-lg" />
+            </div>
+            <div className="flex gap-3">
+              <div className="h-12 w-36 bg-oatmeal/20 animate-pulse rounded-xl" />
+              <div className="h-12 w-36 bg-oatmeal/20 animate-pulse rounded-xl" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-white/60 p-8 rounded-2xl border border-white/50">
+                <div className="h-3 w-24 bg-oatmeal/20 animate-pulse rounded-lg mb-4" />
+                <div className="h-9 w-32 bg-oatmeal/30 animate-pulse rounded-xl" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-white/80 rounded-2xl border border-white/50 overflow-hidden">
+            <div className="p-6 border-b border-oatmeal/20">
+              <div className="h-10 w-64 bg-oatmeal/20 animate-pulse rounded-xl" />
+            </div>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="px-10 py-6 border-b border-oatmeal/10 flex items-center gap-6">
+                <div className="w-10 h-10 bg-oatmeal/20 animate-pulse rounded-xl flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-32 bg-oatmeal/20 animate-pulse rounded" />
+                  <div className="h-2 w-24 bg-oatmeal/15 animate-pulse rounded" />
+                </div>
+                <div className="h-4 w-20 bg-oatmeal/20 animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-palladian p-6 md:p-12 font-sans text-abyssal">
@@ -96,12 +139,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                className={cn("group relative bg-abyssal text-palladian px-8 py-3.5 rounded-xl font-bold text-[10px] uppercase tracking-widest overflow-hidden transition-all active:scale-95 flex items-center gap-2 shadow-2xl shadow-abyssal/20", isLoading && "opacity-50 cursor-not-allowed")}
              >
                <span className="relative z-10 flex items-center gap-2">
-                 <Plus size={16} /> New Identity
+                 <Plus size={16} /> New Invoice
                </span>
                <div className="absolute inset-0 bg-flame translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
              </button>
            </div>
         </header>
+
+        {/* Error Banner */}
+        {fetchError && (
+          <div className="flex items-center gap-4 bg-truffle/10 border border-truffle/30 rounded-2xl p-5">
+            <AlertCircle size={18} className="text-truffle flex-shrink-0" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-truffle">{fetchError}</p>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -175,7 +226,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
             <table className="w-full text-left table-auto">
               <thead>
                 <tr className="bg-palladian/10 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-400 border-b border-oatmeal/20">
-                  <th className="px-10 py-6">Identity</th>
+                  <th className="px-10 py-6">Invoice</th>
                   <th className="px-10 py-6">Client Entity</th>
                   <th className="px-10 py-6 text-right">Net Value</th>
                   <th className="px-10 py-6">State</th>
@@ -251,7 +302,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                       onClick={() => navigate(`/app/edit/${inv.id}`)} 
                       className="text-[9px] font-bold uppercase tracking-widest px-6 py-3.5 bg-abyssal text-palladian rounded-xl hover:bg-[#2b3b4d] transition-all flex items-center gap-2 active:scale-95 shadow-xl shadow-abyssal/10"
                     >
-                      <Edit2 size={14} /> Open ID
+                      <Edit2 size={14} /> Open Invoice
                     </button>
                     <div className="flex items-center gap-2">
                        <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} />
@@ -271,13 +322,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
               </div>
               <h3 className="text-3xl font-bold tracking-tighter mb-4 text-abyssal uppercase">Records Void.</h3>
               <p className="text-abyssal/40 text-[10px] md:text-xs max-w-[250px] mx-auto mb-10 leading-relaxed font-bold uppercase tracking-widest">
-                Your professional billing empire starts here. Create your first high-end identity to get paid beautifully.
+                Your invoice vault is empty. Create your first invoice to get started.
               </p>
               <button
                 onClick={() => navigate('/app/create')}
                 className="text-abyssal font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 bg-flame hover:bg-[#ffbe7a] px-10 py-4 rounded-xl transition-all shadow-2xl shadow-flame/10 active:scale-95"
               >
-                New Identity <ArrowUpRight size={16} />
+                New Invoice <ArrowUpRight size={16} />
               </button>
             </div>
           )}

@@ -11,6 +11,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useAuth, SignIn, SignUp } from '@clerk/clerk-react';
+import { Loader2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { InvoiceWizard } from './components/InvoiceWizard';
 import { LandingPage } from './components/LandingPage';
@@ -20,6 +21,7 @@ import { Settings } from './components/Settings';
 import { LegalPage } from './components/Legal';
 import { PreviewPage } from './components/PreviewPage';
 import { Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { DEFAULT_INVOICE, InvoiceData } from './types';
 import { fetchInvoices, saveInvoice, deleteInvoice } from './lib/invoiceService';
 
@@ -27,18 +29,25 @@ function AppContent() {
   const { isSignedIn, userId, isLoaded } = useAuth();
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isSignedIn && userId) {
       setIsLoading(true);
+      setFetchError(null);
       fetchInvoices(userId)
         .then(data => setInvoices(data))
-        .catch(err => console.error("Failed to fetch invoices from Supabase:", err))
+        .catch(err => {
+          console.error("Failed to fetch invoices from Supabase:", err);
+          setFetchError('Failed to load invoices. Please refresh to try again.');
+          toast.error('Failed to load invoices.');
+        })
         .finally(() => setIsLoading(false));
     } else {
       setInvoices([]);
+      setFetchError(null);
       setIsLoading(false);
     }
   }, [isSignedIn, userId]);
@@ -46,7 +55,7 @@ function AppContent() {
   const handleSaveInvoice = async (data: InvoiceData) => {
     if (!userId) return;
     try {
-      const saved = await saveInvoice(data, userId);
+      await saveInvoice(data, userId);
       setInvoices(prev => {
         const exists = prev.find(i => i.id === data.id);
         if (exists) {
@@ -54,9 +63,11 @@ function AppContent() {
         }
         return [...prev, { ...data, lastModified: Date.now() }];
       });
+      toast.success('Invoice saved.');
       navigate('/app');
     } catch (e) {
       console.error("Failed to save invoice:", e);
+      toast.error('Failed to save invoice. Please try again.');
     }
   };
 
@@ -65,8 +76,10 @@ function AppContent() {
     try {
       await deleteInvoice(id, userId);
       setInvoices(prev => prev.filter(i => i.id !== id));
+      toast.success('Invoice deleted.');
     } catch (e) {
       console.error("Failed to delete invoice:", e);
+      toast.error('Failed to delete invoice. Please try again.');
     }
   };
 
@@ -76,7 +89,12 @@ function AppContent() {
     if (!invoice && !isLoading) {
         return <Navigate to="/app" replace />;
     }
-    if (isLoading) return <div className="p-8 text-white font-bold uppercase tracking-widest text-xs">Loading Invoice...</div>;
+    if (isLoading) return (
+      <div className="flex-1 min-h-screen bg-palladian flex flex-col items-center justify-center gap-4">
+        <Loader2 size={32} className="text-flame animate-spin" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/50">Loading Invoice...</p>
+      </div>
+    );
     return <InvoiceWizard initialData={invoice!} onSave={handleSaveInvoice} />;
   };
 
@@ -96,23 +114,23 @@ function AppContent() {
             <SignUp forceRedirectUrl="/app" signInUrl="/login" />
           </div>
         } />
-        
+
         <Route path="/about" element={
-          <LegalPage 
-            title="Design. Bill. Repeat." 
-            content="Invoicy was founded on the belief that administrative tools shouldn't look like spreadsheets from 1998. We combine high-end typography with a razor-sharp export engine to give your business a Pro aesthetic presence." 
+          <LegalPage
+            title="Design. Bill. Repeat."
+            content="Invoicy was founded on the belief that administrative tools shouldn't look like spreadsheets from 1998. We combine high-end typography with a razor-sharp export engine to give your business a Pro aesthetic presence."
           />
         } />
         <Route path="/privacy" element={
-          <LegalPage 
-            title="Your Data. Your Vault." 
-            content="We don't sell your data. We don't even see your data. Everything you create in Invoicy is securely stored. We believe in absolute privacy by default." 
+          <LegalPage
+            title="Your Data. Your Vault."
+            content="We don't sell your data. We don't even see your data. Everything you create in Invoicy is securely stored. We believe in absolute privacy by default."
           />
         } />
         <Route path="/terms" element={
-          <LegalPage 
-            title="The Ground Rules." 
-            content="Use Invoicy to bill your clients. Don't use it for illegal activities. Respect the donkey mascot. That's basically it." 
+          <LegalPage
+            title="The Ground Rules."
+            content="Use Invoicy to bill your clients. Don't use it for illegal activities. Respect the donkey mascot. That's basically it."
           />
         } />
 
@@ -122,7 +140,7 @@ function AppContent() {
         {/* Protected Routes */}
         <Route element={<AuthGuard />}>
           <Route element={<AppLayout />}>
-            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} isLoading={isLoading} />} />
+            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} isLoading={isLoading} fetchError={fetchError} />} />
             <Route path="/app/create" element={<InvoiceWizard initialData={DEFAULT_INVOICE()} onSave={handleSaveInvoice} />} />
             <Route path="/app/edit/:id" element={<EditRoute />} />
             <Route path="/app/settings" element={<Settings />} />
@@ -143,4 +161,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

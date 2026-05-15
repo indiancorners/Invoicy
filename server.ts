@@ -11,12 +11,6 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Set up Supabase admin client for backend operations
-  const supabase = createClient(
-    process.env.VITE_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || ''
-  );
-
   app.use(cors());
 
   // --- Lemon Squeezy Webhook API Route ---
@@ -28,6 +22,10 @@ async function startServer() {
         const rawBody = req.body;
         const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || '';
         const signature = req.headers['x-signature'] as string || '';
+        const supabase = createClient(
+          process.env.VITE_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY!
+        );
 
         // Verify Lemon Squeezy signature
         const hmac = crypto.createHmac('sha256', secret);

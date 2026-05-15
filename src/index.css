@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Helvetica Neue", "Helvetica", "Arial", "Inter", sans-serif;
+  --font-sans: "DM Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-palladian: #EEE9DF;
@@ -21,26 +21,26 @@
 }
 
 /* Premium Scrollbar */
-.custom-scrollbar::-webkit-scrollbar { 
-    width: 6px; 
-    height: 6px; 
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
-.custom-scrollbar::-webkit-scrollbar-track { 
-    background: transparent; 
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb { 
-    background: rgba(10, 10, 11, 0.1); 
-    border-radius: 10px; 
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(10, 10, 11, 0.1);
+    border-radius: 10px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { 
-    background: rgba(10, 10, 11, 0.2); 
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(10, 10, 11, 0.2);
 }
 
 /* Hide Spinners for Numbers */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 input[type=number] {
   -moz-appearance: textfield;

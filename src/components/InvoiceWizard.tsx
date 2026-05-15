@@ -129,7 +129,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                 </button>
                 <div className="h-4 w-px bg-neutral-200 shrink-0" />
                 <h2 className="text-xl md:text-2xl font-bold tracking-tighter leading-none uppercase">
-                   {step === 1 && "Choose Identity"}
+                   {step === 1 && "Choose Design"}
                    {step === 2 && "Input Details"}
                    {step === 3 && "Final Review"}
                 </h2>
@@ -319,7 +319,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                                   return;
                                }
                                navigator.clipboard.writeText(window.location.origin + `/preview/${data.id}`);
-                               toast.success("Identity Link copied to clipboard!");
+                               toast.success("Invoice link copied to clipboard!");
                             }}
                             className="w-full flex items-center justify-between p-6 bg-neutral-50/50 border border-neutral-200 rounded-xl hover:border-abyssal hover:bg-white transition-all group active:scale-[0.98]"
                          >
@@ -360,7 +360,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                       </div>
                       <div>
                          <h5 className="text-[11px] text-emerald-900 font-bold uppercase tracking-widest mb-1">Validation Status: Perfect</h5>
-                         <p className="text-[10px] text-emerald-800/60 font-bold uppercase tracking-widest leading-relaxed">All identity fields and legal requirements have been verified. Your studio-grade export is ready for delivery.</p>
+                         <p className="text-[10px] text-emerald-800/60 font-bold uppercase tracking-widest leading-relaxed">All invoice fields have been verified. Your studio-grade export is ready for delivery.</p>
                       </div>
                    </div>
                 </motion.div>

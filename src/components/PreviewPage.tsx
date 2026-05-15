@@ -77,18 +77,18 @@ export const PreviewPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-palladian flex flex-col">
+    <div className="min-h-screen bg-base flex flex-col">
       {/* Header */}
-      <header className="w-full border-b border-abyssal/10 bg-palladian/90 backdrop-blur-sm sticky top-0 z-50">
+      <header className="w-full border-b border-border bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <BrandLogo className="w-8 h-8 text-flame" />
+            <BrandLogo className="w-8 h-8" />
             <div className="flex flex-col leading-none">
-              <span className="font-bold text-abyssal uppercase tracking-widest text-sm">
+              <span className="font-semibold text-foreground tracking-tight text-sm">
                 Invoicy
               </span>
-              <span className="text-abyssal/50 uppercase tracking-widest text-[9px] font-bold">
+              <span className="text-muted text-[9px] font-medium">
                 Studio-Grade Invoicing
               </span>
             </div>
@@ -98,8 +98,8 @@ export const PreviewPage: React.FC = () => {
           <Link
             to="/"
             className={cn(
-              'text-xs font-bold uppercase tracking-widest',
-              'text-flame hover:text-abyssal transition-colors duration-150'
+              'text-xs font-medium',
+              'text-accent hover:opacity-80 transition-opacity duration-150'
             )}
           >
             Create yours free →
@@ -111,9 +111,9 @@ export const PreviewPage: React.FC = () => {
       <main className="flex-1 flex flex-col items-center px-4 py-12 gap-10">
         {fetchState === 'loading' && (
           <div className="flex-1 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4 text-abyssal/50">
+            <div className="flex flex-col items-center gap-4 text-muted">
               <Loader2 className="w-8 h-8 animate-spin" />
-              <p className="text-xs font-bold uppercase tracking-widest">Loading invoice…</p>
+              <p className="text-xs font-medium">Loading invoice…</p>
             </div>
           </div>
         )}
@@ -121,18 +121,18 @@ export const PreviewPage: React.FC = () => {
         {fetchState === 'not-found' && (
           <div className="flex-1 flex items-center justify-center">
             <div className="flex flex-col items-center gap-6 text-center">
-              <BrandLogo className="w-16 h-16 text-abyssal/20" />
+              <BrandLogo className="w-16 h-16 opacity-20" />
               <div className="space-y-2">
-                <p className="text-abyssal font-bold uppercase tracking-widest text-sm">
+                <p className="text-foreground font-semibold text-sm">
                   Invoice not found
                 </p>
-                <p className="text-abyssal/50 text-xs uppercase tracking-widest">
+                <p className="text-muted text-xs">
                   This link may have expired or the invoice doesn't exist.
                 </p>
               </div>
               <Link
                 to="/"
-                className="text-xs font-bold uppercase tracking-widest text-flame hover:text-abyssal transition-colors duration-150"
+                className="text-xs font-medium text-accent hover:opacity-80 transition-opacity duration-150"
               >
                 Create your own →
               </Link>
@@ -155,10 +155,8 @@ export const PreviewPage: React.FC = () => {
                 onClick={handleExportPDF}
                 disabled={isExporting}
                 className={cn(
-                  'flex items-center gap-2 px-5 py-3',
-                  'bg-abyssal text-oatmeal',
-                  'text-xs font-bold uppercase tracking-widest',
-                  'hover:bg-flame hover:text-oatmeal transition-colors duration-150',
+                  'rounded-full bg-[#1D1D1F] text-white h-10 px-6 text-[13px] font-medium flex items-center gap-2',
+                  'hover:opacity-80',
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >
@@ -174,10 +172,8 @@ export const PreviewPage: React.FC = () => {
                 onClick={handleExportPNG}
                 disabled={isExporting}
                 className={cn(
-                  'flex items-center gap-2 px-5 py-3',
-                  'border-2 border-abyssal text-abyssal',
-                  'text-xs font-bold uppercase tracking-widest',
-                  'hover:border-flame hover:text-flame transition-colors duration-150',
+                  'rounded-full border border-border bg-subtle text-foreground h-10 px-6 text-[13px] font-medium flex items-center gap-2',
+                  'hover:opacity-80',
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >
@@ -191,9 +187,9 @@ export const PreviewPage: React.FC = () => {
             </div>
 
             {/* Bottom CTA */}
-            <p className="text-xs font-bold uppercase tracking-widest text-abyssal/40">
+            <p className="text-xs font-medium text-placeholder">
               Made with{' '}
-              <Link to="/" className="text-flame hover:text-abyssal transition-colors duration-150">
+              <Link to="/" className="text-accent hover:opacity-80 transition-opacity duration-150">
                 Invoicy
               </Link>{' '}
               — Studio-grade invoicing for free.

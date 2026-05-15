@@ -1,21 +1,22 @@
 import React from 'react';
+import logoDarkSrc from '../assets/logo_dark.png';
 
-export const BrandLogo: React.FC<{ className?: string }> = ({ className = "w-10 h-10" }) => {
+interface BrandLogoProps {
+  className?: string;
+  onDark?: boolean; // true = white logo (dark backgrounds), false = dark logo (light backgrounds)
+}
+
+export const BrandLogo: React.FC<BrandLogoProps> = ({ className = 'w-8 h-8', onDark = false }) => {
   return (
-    <svg 
-      viewBox="0 0 100 100" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg" 
+    <img
+      src={logoDarkSrc}
+      alt="Invoicy"
+      draggable={false}
       className={className}
-    >
-      <path 
-        d="M28 15L75 15L50 50L3 50L28 15Z" 
-        fill="currentColor" 
-      />
-      <path 
-        d="M72 85L25 85L50 50L97 50L72 85Z" 
-        fill="currentColor" 
-      />
-    </svg>
+      style={{
+        objectFit: 'contain',
+        filter: onDark ? 'brightness(0) invert(1)' : 'brightness(0)',
+      }}
+    />
   );
 };

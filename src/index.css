@@ -1,22 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "DM Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-palladian: #EEE9DF;
-  --color-oatmeal: #C9C1B1;
-  --color-flame: #FFB162;
-  --color-truffle: #A35139;
-  --color-blue: #2C3B4D;
-  --color-abyssal: #1B2632;
+  /* DS_Tools color tokens */
+  --color-base:    #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-subtle:  #F5F5F7;
+  --color-overlay: #E8E8ED;
+
+  --color-border:        #D2D2D7;
+  --color-border-strong: #AEAEB2;
+
+  --color-foreground:  #1D1D1F;
+  --color-muted:       #6E6E73;
+  --color-placeholder: #86868B;
+
+  --color-accent:       #2563EB;
+  --color-accent-dark:  #1D4ED8;
+  --color-accent-light: #EFF6FF;
+
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger:  #DC2626;
+
+  /* Legacy token aliases — remapped to DS palette */
+  --color-abyssal:   #1D1D1F;
+  --color-palladian: #F5F5F7;
+  --color-oatmeal:   #D2D2D7;
+  --color-flame:     #2563EB;
+  --color-truffle:   #DC2626;
+  --color-blue:      #1D4ED8;
 }
 
 @layer base {
   body {
-    @apply bg-palladian text-abyssal antialiased selection:bg-flame selection:text-abyssal font-sans;
+    @apply text-foreground antialiased selection:bg-accent-light selection:text-accent font-sans;
+    background-color: #FAFAFA;
   }
 }
 
@@ -29,11 +52,11 @@
     background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(10, 10, 11, 0.1);
+    background: rgba(0, 0, 0, 0.12);
     border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(10, 10, 11, 0.2);
+    background: rgba(0, 0, 0, 0.2);
 }
 
 /* Hide Spinners for Numbers */

@@ -79,7 +79,15 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-palladian overflow-hidden relative">
+    <>
+    {/* Hidden export capture — fixed position so parent overflow:hidden doesn't clip it */}
+    <div
+      aria-hidden="true"
+      style={{ position: 'fixed', left: '-9999px', top: 0, width: '794px', pointerEvents: 'none', zIndex: -100, overflow: 'hidden' }}
+    >
+      <InvoicePreview data={data} />
+    </div>
+    <div className="flex flex-col h-[100dvh] bg-[#FAFAFA] overflow-hidden relative">
       {/* Export loading overlay */}
       <AnimatePresence>
         {isExporting && (
@@ -87,27 +95,28 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-abyssal/80 backdrop-blur-md flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 z-[200] bg-[#1D1D1F]/80 backdrop-blur-md flex flex-col items-center justify-center text-white"
           >
             <div className="relative">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-20 h-20 border-t-2 border-r-2 border-flame rounded-full"
+                className="w-20 h-20 border-t-2 border-r-2 border-[#2563EB] rounded-full"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="text-flame animate-pulse" size={32} />
+                <Loader2 className="text-[#2563EB] animate-pulse" size={32} />
               </div>
             </div>
-            <h3 className="mt-8 text-2xl font-bold tracking-tighter uppercase">Studio <span className="text-flame">Exporting...</span></h3>
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">Rendering high-fidelity assets</p>
+            <h3 className="mt-8 text-2xl font-bold tracking-tighter">Exporting<span className="text-[#2563EB]">...</span></h3>
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B]">Rendering high-fidelity assets</p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="h-1 bg-neutral-200 w-full shrink-0 z-50">
+      {/* Step progress bar */}
+      <div className="h-1 bg-[#E8E8ED] w-full shrink-0 z-50">
          <motion.div
-            className="h-full bg-flame"
+            className="h-full bg-[#2563EB]"
             initial={{ width: '0%' }}
             animate={{ width: `${(step / 3) * 100}%` }}
             transition={{ duration: 0.5, ease: "circOut" }}
@@ -116,32 +125,50 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
 
       <div className="flex-grow flex flex-col overflow-hidden">
         {/* Full-width Control Panel */}
-        <section className="w-full bg-white border-r border-neutral-200 flex flex-col h-full shadow-2xl shrink-0 z-40 relative transition-all duration-500">
-          <header className="p-6 md:p-10 border-b border-neutral-100 bg-white z-10 shrink-0">
+        <section className="w-full bg-white border-r border-[#D2D2D7] flex flex-col h-full shrink-0 z-40 relative transition-all duration-500">
+          <header className="p-6 md:p-10 border-b border-[#D2D2D7] bg-white z-10 shrink-0">
              <div className="flex items-center gap-4 mb-6">
                 <button
                    type="button"
                    onClick={() => navigate('/app')}
-                   className="w-10 h-10 border border-neutral-200 rounded-xl flex items-center justify-center hover:bg-neutral-50 transition-all shadow-sm active:scale-90 shrink-0"
+                   className="w-10 h-10 border border-[#D2D2D7] rounded-xl flex items-center justify-center hover:bg-[#F5F5F7] transition-all active:scale-90 shrink-0"
                    aria-label="Go back"
                 >
-                   <ArrowLeft size={20} />
+                   <ArrowLeft size={20} className="text-[#1D1D1F]" />
                 </button>
-                <div className="h-4 w-px bg-neutral-200 shrink-0" />
-                <h2 className="text-xl md:text-2xl font-bold tracking-tighter leading-none uppercase">
+                <div className="h-4 w-px bg-[#D2D2D7] shrink-0" />
+                <h2 className="text-[15px] font-semibold tracking-tight text-[#1D1D1F]">
                    {step === 1 && "Choose Design"}
                    {step === 2 && "Input Details"}
                    {step === 3 && "Final Review"}
                 </h2>
              </div>
-             <p className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">
-                {step === 1 && "Select a visual direction for your business."}
-                {step === 2 && "Precision detail for professional billing."}
-                {step === 3 && "Confirm data and export your assets."}
-             </p>
+             {/* Step indicator dots */}
+             <div className="flex items-center gap-2">
+               {[1, 2, 3].map((s) => (
+                 <div
+                   key={s}
+                   className={cn(
+                     "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold transition-all",
+                     s === step
+                       ? "bg-[#2563EB] text-white"
+                       : s < step
+                       ? "bg-[#1D1D1F] text-white"
+                       : "bg-[#D2D2D7] text-[#6E6E73]"
+                   )}
+                 >
+                   {s < step ? <Check size={12} /> : s}
+                 </div>
+               ))}
+               <span className="text-[11px] font-semibold uppercase tracking-widest text-[#86868B] ml-2">
+                 {step === 1 && "Select a visual direction for your business."}
+                 {step === 2 && "Precision detail for professional billing."}
+                 {step === 3 && "Confirm data and export your assets."}
+               </span>
+             </div>
           </header>
 
-          <div className="flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar bg-neutral-50/30">
+          <div className="flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#FAFAFA]">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div
@@ -161,26 +188,26 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                           type="button"
                           onClick={() => handleThemeSelect(theme)}
                           className={cn(
-                            "w-full flex flex-col p-6 rounded-xl border transition-all text-left group relative outline-none",
+                            "w-full flex flex-col p-6 rounded-2xl border transition-all text-left group relative outline-none",
                             isActive
-                              ? "border-abyssal bg-abyssal text-white translate-x-1 shadow-xl shadow-abyssal/10"
-                              : "border-neutral-200/60 bg-white hover:border-flame hover:bg-neutral-50"
+                              ? "border-2 border-[#2563EB] bg-[#EFF6FF]"
+                              : "border border-[#D2D2D7] bg-[#F5F5F7] hover:border-[#AEAEB2]"
                           )}
                         >
-                          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mb-4 transition-colors", isActive ? theme.color : "bg-neutral-100 group-hover:bg-neutral-200 shadow-sm")}>
-                             <Icon size={20} className={isActive ? "text-white" : "text-neutral-400"} />
+                          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mb-4 transition-colors", isActive ? theme.color : "bg-white border border-[#D2D2D7] shadow-sm")}>
+                             <Icon size={20} className={isActive ? "text-white" : "text-[#6E6E73]"} />
                           </div>
                           <div>
-                            <p className="font-bold text-[13px] tracking-tight uppercase mb-1">{theme.label}</p>
-                            <p className={cn("text-[8px] font-bold uppercase tracking-widest", isActive ? "text-white/40" : "text-neutral-400")}>{theme.desc}</p>
+                            <p className="font-semibold text-[14px] tracking-tight text-[#1D1D1F] mb-1">{theme.label}</p>
+                            <p className={cn("text-[11px] font-semibold uppercase tracking-widest", isActive ? "text-[#2563EB]" : "text-[#86868B]")}>{theme.desc}</p>
                           </div>
                           {theme.isPremium && !pro.isPremium && !isActive && (
-                             <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 bg-neutral-100 rounded-md shadow-sm">
-                                <Lock size={10} className="text-neutral-400" />
-                                <span className="text-[7px] font-bold uppercase tracking-widest text-neutral-400">Pro</span>
+                             <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 bg-white border border-[#D2D2D7] rounded-full shadow-sm">
+                                <Lock size={10} className="text-[#6E6E73]" />
+                                <span className="text-[10px] font-semibold uppercase tracking-widest text-[#6E6E73]">Pro</span>
                              </div>
                           )}
-                          {isActive && <Check size={18} className="text-flame absolute bottom-6 right-6" />}
+                          {isActive && <Check size={16} className="text-[#2563EB] absolute bottom-6 right-6" />}
                         </button>
                       );
                     })}
@@ -197,31 +224,33 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                    className="h-full flex flex-col"
                 >
                   {/* Tab bar */}
-                  <div className="flex gap-2 p-4 border-b border-neutral-100 bg-white shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('details')}
-                      className={cn(
-                        "px-6 py-3 text-[9px] font-bold uppercase tracking-widest transition-all",
-                        activeTab === 'details'
-                          ? "bg-white border border-neutral-200 rounded-xl text-abyssal shadow-sm"
-                          : "text-neutral-400 hover:text-abyssal"
-                      )}
-                    >
-                      📝 Details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('preview')}
-                      className={cn(
-                        "px-6 py-3 text-[9px] font-bold uppercase tracking-widest transition-all",
-                        activeTab === 'preview'
-                          ? "bg-white border border-neutral-200 rounded-xl text-abyssal shadow-sm"
-                          : "text-neutral-400 hover:text-abyssal"
-                      )}
-                    >
-                      👁 Preview
-                    </button>
+                  <div className="flex p-4 border-b border-[#D2D2D7] bg-white shrink-0">
+                    <div className="flex bg-[#F5F5F7] rounded-full p-1 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('details')}
+                        className={cn(
+                          "px-5 py-2 text-[13px] font-medium rounded-full transition-all",
+                          activeTab === 'details'
+                            ? "bg-white text-[#1D1D1F] shadow-sm"
+                            : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                        )}
+                      >
+                        Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('preview')}
+                        className={cn(
+                          "px-5 py-2 text-[13px] font-medium rounded-full transition-all",
+                          activeTab === 'preview'
+                            ? "bg-white text-[#1D1D1F] shadow-sm"
+                            : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                        )}
+                      >
+                        Preview
+                      </button>
+                    </div>
                   </div>
 
                   {/* Tab content */}
@@ -247,69 +276,86 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                    exit={{ opacity: 0, x: 20 }}
                    className="p-6 md:p-10 space-y-8"
                 >
-                   <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-xl">
-                      <div className="flex items-center justify-between mb-8 px-1">
-                        <h4 className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Asset Export Hub</h4>
+                   <div className="bg-white p-8 rounded-2xl border border-[#D2D2D7]">
+                      <div className="flex items-center justify-between mb-8 px-1 pb-4 border-b border-[#D2D2D7]">
+                        <h4 className="text-[11px] font-semibold uppercase tracking-widest text-[#86868B]">Asset Export Hub</h4>
                       </div>
                       <div className="space-y-4">
+                         {/* PDF Export */}
                          <button
                             type="button"
                             disabled={isExporting}
-                            onClick={() => handleExport('pdf')}
+                            onClick={() => {
+                              if (!pro.isPremium) {
+                                setUpgradeReason('pro-theme');
+                                setShowUpgradeModal(true);
+                                return;
+                              }
+                              handleExport('pdf');
+                            }}
                             className={cn(
-                              "w-full flex items-center justify-between p-6 bg-neutral-50/50 border border-neutral-200 rounded-xl hover:border-abyssal hover:bg-white transition-all group active:scale-[0.98]",
+                              "w-full flex items-center justify-between p-5 bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl hover:border-[#AEAEB2] hover:bg-white transition-all active:scale-[0.98]",
                               isExporting && "opacity-50 cursor-not-allowed"
                             )}
                          >
-                            <span className="flex items-center gap-4 font-bold text-[12px] uppercase tracking-widest">
+                            <span className="flex items-center gap-4 font-semibold text-[14px] text-[#1D1D1F]">
                                <div className={cn(
-                                 "w-12 h-12 rounded-lg bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors",
+                                 "w-11 h-11 rounded-lg bg-red-50 text-red-600 flex items-center justify-center",
                                  exportingType === 'pdf' && "animate-pulse"
                                )}>
                                  {exportingType === 'pdf' ? (
-                                   <Loader2 className="animate-spin" size={22} />
+                                   <Loader2 className="animate-spin" size={20} />
                                  ) : pro.isPremium ? (
-                                   <BrandLogo className="w-6 h-6 text-flame" />
+                                   <BrandLogo className="w-5 h-5" />
                                  ) : (
-                                   <Lock size={22} />
+                                   <Lock size={20} />
                                  )}
                                </div>
                                {exportingType === 'pdf' ? "Exporting PDF..." : "Download PDF"}
                             </span>
-                            <span className="text-[9px] bg-white border border-neutral-200 px-3 py-1.5 rounded-lg font-bold text-neutral-300">
-                              {exportingType === 'pdf' ? "Processing" : "ISO A4 @ 300DPI"}
+                            <span className="text-[11px] font-semibold uppercase tracking-widest bg-white border border-[#D2D2D7] px-3 py-1.5 rounded-full text-[#86868B]">
+                              {exportingType === 'pdf' ? "Processing" : "ISO A4 · 300DPI"}
                             </span>
                          </button>
 
+                         {/* PNG Export */}
                          <button
                             type="button"
                             disabled={isExporting}
-                            onClick={() => handleExport('png')}
+                            onClick={() => {
+                              if (!pro.isPremium) {
+                                setUpgradeReason('pro-theme');
+                                setShowUpgradeModal(true);
+                                return;
+                              }
+                              handleExport('png');
+                            }}
                             className={cn(
-                              "w-full flex items-center justify-between p-6 bg-neutral-50/50 border border-neutral-200 rounded-xl hover:border-abyssal hover:bg-white transition-all group active:scale-[0.98]",
+                              "w-full flex items-center justify-between p-5 bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl hover:border-[#AEAEB2] hover:bg-white transition-all active:scale-[0.98]",
                               isExporting && "opacity-50 cursor-not-allowed"
                             )}
                          >
-                            <span className="flex items-center gap-4 font-bold text-[12px] uppercase tracking-widest">
+                            <span className="flex items-center gap-4 font-semibold text-[14px] text-[#1D1D1F]">
                                <div className={cn(
-                                 "w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors",
+                                 "w-11 h-11 rounded-lg bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center",
                                  exportingType === 'png' && "animate-pulse"
                                )}>
                                  {exportingType === 'png' ? (
-                                   <Loader2 className="animate-spin" size={22} />
+                                   <Loader2 className="animate-spin" size={20} />
                                  ) : pro.isPremium ? (
-                                   <BrandLogo className="w-6 h-6 text-flame" />
+                                   <BrandLogo className="w-5 h-5" />
                                  ) : (
-                                   <Lock size={22} />
+                                   <Lock size={20} />
                                  )}
                                </div>
                                {exportingType === 'png' ? "Exporting PNG..." : "Download PNG"}
                             </span>
-                            <span className="text-[9px] bg-white border border-neutral-200 px-3 py-1.5 rounded-lg font-bold text-neutral-300">
-                               {exportingType === 'png' ? "Processing" : "Lossless Studio Asset"}
+                            <span className="text-[11px] font-semibold uppercase tracking-widest bg-white border border-[#D2D2D7] px-3 py-1.5 rounded-full text-[#86868B]">
+                               {exportingType === 'png' ? "Processing" : "Lossless · 2x"}
                             </span>
                          </button>
 
+                         {/* Copy Link */}
                          <button
                             type="button"
                             onClick={() => {
@@ -321,15 +367,20 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                                navigator.clipboard.writeText(window.location.origin + `/preview/${data.id}`);
                                toast.success("Invoice link copied to clipboard!");
                             }}
-                            className="w-full flex items-center justify-between p-6 bg-neutral-50/50 border border-neutral-200 rounded-xl hover:border-abyssal hover:bg-white transition-all group active:scale-[0.98]"
+                            className="w-full flex items-center justify-between p-5 bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl hover:border-[#AEAEB2] hover:bg-white transition-all active:scale-[0.98]"
                          >
-                            <span className="flex items-center gap-4 font-bold text-[12px] uppercase tracking-widest">
-                               <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                 {pro.isPremium ? <BrandLogo className="w-6 h-6 text-flame" /> : <Lock size={22} />}
+                            <span className="flex items-center gap-4 font-semibold text-[14px] text-[#1D1D1F]">
+                               <div className="w-11 h-11 rounded-lg bg-[#F0FDF4] text-[#16A34A] flex items-center justify-center">
+                                 {pro.isPremium ? <BrandLogo className="w-5 h-5" /> : <Lock size={20} />}
                                </div>
                                Copy Link
                             </span>
-                            <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-3 py-1.5 rounded-lg font-bold uppercase tracking-widest">
+                            <span className={cn(
+                              "text-[11px] font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full border",
+                              pro.isPremium
+                                ? "bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]"
+                                : "bg-white border-[#D2D2D7] text-[#86868B]"
+                            )}>
                                {pro.isPremium ? "Unlocked" : "Pro Only"}
                             </span>
                          </button>
@@ -337,30 +388,30 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                    </div>
 
                    {!pro.isPremium && (
-                      <div className="p-8 bg-abyssal text-palladian rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden group backdrop-blur-xl">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-flame/30 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
-                        <h4 className="text-[14px] font-bold mb-3 uppercase tracking-wide flex items-center gap-2">
-                           <Star size={16} className="text-flame fill-flame" /> Upgrade to Pro Unlimited
+                      <div className="p-8 bg-[#1D1D1F] text-white rounded-2xl border border-white/10 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
+                        <h4 className="text-[14px] font-semibold mb-3 flex items-center gap-2">
+                           <Star size={16} className="text-[#2563EB] fill-[#2563EB]" /> Upgrade to Pro Unlimited
                         </h4>
-                        <p className="text-[10px] text-oatmeal/60 font-bold uppercase tracking-[0.1em] mb-6 leading-relaxed">
-                           Unlock all 5 studio-grade themes, unlimited high-fidelity exports, and shareable invoice links — forever.
+                        <p className="text-[13px] text-white/60 mb-6 leading-relaxed">
+                           Unlock all 5 studio-grade themes, unlimited high-fidelity exports, and shareable invoice links.
                         </p>
                         <button
                            onClick={() => { setUpgradeReason('invoice-limit'); setShowUpgradeModal(true); }}
-                           className="w-full bg-flame text-abyssal font-bold text-[11px] uppercase tracking-widest py-4 rounded-xl hover:bg-[#ffbe7a] transition-all shadow-xl active:scale-95"
+                           className="w-full rounded-full bg-[#2563EB] text-white font-semibold text-[15px] h-12 px-7 hover:opacity-80 transition-all active:scale-95"
                         >
-                           Activate Elite Access / $20
+                           Activate Pro / $20
                         </button>
                       </div>
                    )}
 
-                   <div className="p-8 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-4 shadow-sm">
-                      <div className="bg-emerald-100 p-2 rounded-full mt-0.5">
-                        <Check size={20} className="text-emerald-600" />
+                   <div className="p-6 bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl flex items-start gap-4">
+                      <div className="bg-[#DCFCE7] p-2 rounded-full mt-0.5">
+                        <Check size={18} className="text-[#16A34A]" />
                       </div>
                       <div>
-                         <h5 className="text-[11px] text-emerald-900 font-bold uppercase tracking-widest mb-1">Validation Status: Perfect</h5>
-                         <p className="text-[10px] text-emerald-800/60 font-bold uppercase tracking-widest leading-relaxed">All invoice fields have been verified. Your studio-grade export is ready for delivery.</p>
+                         <h5 className="text-[11px] text-[#16A34A] font-semibold uppercase tracking-widest mb-1">Validation Status: Ready</h5>
+                         <p className="text-[12px] text-[#15803D]/70 leading-relaxed">All invoice fields verified. Your export is ready for delivery.</p>
                       </div>
                    </div>
                 </motion.div>
@@ -368,32 +419,32 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
             </AnimatePresence>
           </div>
 
-          <footer className="p-6 md:p-10 border-t border-neutral-100 bg-white/80 backdrop-blur-xl shrink-0 flex gap-4 z-20">
-                    {step > 1 && (
-                       <button
-                          type="button"
-                          onClick={handleBack}
-                          className="px-6 py-4 border border-neutral-200 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-neutral-50 transition-all flex items-center justify-center hover:border-neutral-300 active:scale-95 shadow-sm"
-                       >
-                  <ArrowLeft size={16} />
+          <footer className="p-6 md:p-10 border-t border-[#D2D2D7] bg-white shrink-0 flex gap-3 z-20">
+            {step > 1 && (
+               <button
+                  type="button"
+                  onClick={handleBack}
+                  className="rounded-full border border-[#D2D2D7] bg-[#F5F5F7] text-[#1D1D1F] h-10 px-6 text-sm font-medium hover:opacity-80 transition-all flex items-center justify-center gap-2"
+               >
+                  <ArrowLeft size={15} /> Back
                </button>
             )}
             {step < 3 ? (
                <button
                   type="button"
                   onClick={handleNext}
-                  className="flex-grow flex items-center justify-center gap-3 bg-abyssal text-white px-8 py-4 rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-[#1B2632] transition-all shadow-2xl shadow-abyssal/20 active:scale-95 group"
+                  className="flex-grow flex items-center justify-center gap-2 rounded-full bg-[#1D1D1F] text-white h-10 px-6 font-semibold text-sm hover:opacity-80 transition-all group"
                >
-                  {step === 1 ? "Configure Details" : "Final Verification"}
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  {step === 1 ? "Configure Details" : "Final Review"}
+                  <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
                </button>
             ) : (
                <button
                   type="button"
                   onClick={handleFinalSave}
-                  className="flex-grow flex items-center justify-center gap-3 bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all shadow-2xl shadow-emerald-500/20 active:scale-95 group"
+                  className="flex-grow flex items-center justify-center gap-2 rounded-full bg-[#1D1D1F] text-white h-10 px-6 font-semibold text-sm hover:opacity-80 transition-all group"
                >
-                  Commit to Vault & Exit <Activity size={16} className="animate-pulse" />
+                  Save & Exit <Activity size={15} className="animate-pulse" />
                </button>
             )}
           </footer>
@@ -408,5 +459,6 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
         reason={upgradeReason}
       />
     </div>
+    </>
   );
 };

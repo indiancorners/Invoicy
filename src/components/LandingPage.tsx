@@ -1,20 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Check, Zap, Layout, Shield, Star, ChevronDown, FileText, Send, Download, Clock, Users, TrendingUp } from 'lucide-react';
+import { ArrowRight, Check, Eye, Layers, Lock, Shield, Star, ChevronDown, FileText, Download, Clock, Users, TrendingUp, Zap, Layout } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { BrandLogo } from './BrandLogo';
 import { useAuth } from '@clerk/clerk-react';
 import mascotImage from '../assets/images/regenerated_image_1778569549463.png';
 import aboutImage from '../assets/images/regenerated_image_1778571099227.png';
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
+function fadeUp(delay = 0) {
+  return {
+    initial: { opacity: 0, y: 36 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: '-56px' },
+    transition: { duration: 0.8, ease, delay },
+  };
+}
+
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isSignedIn } = useAuth();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     console.log("Studio Landing Page Initialized");
+  }, []);
+
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
   }, []);
 
   const scrollTo = (id: string) => {
@@ -26,17 +44,17 @@ export const LandingPage: React.FC = () => {
 
   const features = [
     {
-      icon: <Zap className="text-flame" />,
+      icon: <Eye className="text-accent" />,
       title: "Instant Live Preview",
       desc: "See your invoice update in real-time as you type. Zero lag. What you see is exactly what exports."
     },
     {
-      icon: <Layout className="text-blue" />,
+      icon: <Layers className="text-accent" />,
       title: "5 Professional Themes",
       desc: "From minimalist to corporate — every layout is precision-crafted for authority and client confidence."
     },
     {
-      icon: <Shield className="text-truffle" />,
+      icon: <Lock className="text-accent" />,
       title: "Your Data is Yours",
       desc: "Local-first architecture with optional cloud sync. Your business details never leave without your say."
     }
@@ -45,19 +63,19 @@ export const LandingPage: React.FC = () => {
   const steps = [
     {
       number: "01",
-      icon: <FileText size={28} className="text-flame" />,
+      icon: <FileText size={28} className="text-accent" />,
       title: "Fill Your Details",
       desc: "Set up your business profile once. It auto-fills on every invoice — your name, logo, address, and tax ID are always ready."
     },
     {
       number: "02",
-      icon: <Layout size={28} className="text-blue" />,
+      icon: <Layout size={28} className="text-accent" />,
       title: "Pick a Design",
       desc: "Choose from 5 agency-grade invoice designs. Toggle live preview to see exactly how your client will receive it."
     },
     {
       number: "03",
-      icon: <Download size={28} className="text-truffle" />,
+      icon: <Download size={28} className="text-accent" />,
       title: "Export & Send",
       desc: "Download a 300 DPI PDF or PNG, or share via a professional public link. Done in under 60 seconds."
     }
@@ -134,26 +152,40 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-palladian text-abyssal selection:bg-flame font-sans">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 h-20 bg-abyssal/80 backdrop-blur-xl border-b border-white/10 z-50 flex items-center justify-between px-6 md:px-12">
+    <div className="min-h-screen bg-[#FAFAFA] text-foreground selection:bg-accent/20 font-sans">
+      {/* Navigation — scroll-aware frosted glass */}
+      <header
+        className="fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-6 md:px-12 transition-all duration-300"
+        style={scrolled ? {
+          background: 'rgba(255,255,255,0.72)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          boxShadow: '0 1px 0 rgba(0,0,0,0.08)',
+        } : { background: 'transparent' }}
+      >
         <div className="flex items-center gap-3">
-          <Link to="/" className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group cursor-pointer hover:border-flame/50 transition-all">
-            <BrandLogo className="w-6 h-6 text-flame group-hover:scale-110 transition-transform" />
+          <Link to="/" className={`w-8 h-8 rounded-xl flex items-center justify-center border group cursor-pointer transition-all ${scrolled ? 'bg-foreground/5 border-border hover:border-accent/40' : 'bg-white/10 border-white/15 hover:border-white/30'}`}>
+            <BrandLogo className="w-5 h-5 group-hover:scale-110 transition-transform" onDark={!scrolled} />
           </Link>
-          <Link to="/" className="font-bold tracking-tighter text-xl text-white uppercase">Invoicy</Link>
+          <Link
+            to="/"
+            className={`font-semibold tracking-tight transition-colors ${scrolled ? 'text-foreground' : 'text-white'}`}
+            style={{ fontSize: '15px' }}
+          >
+            Invoicy
+          </Link>
         </div>
-        <div className="hidden md:flex items-center gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-          <button onClick={() => scrollTo('how-it-works')} className="hover:text-flame transition-colors">How It Works</button>
-          <button onClick={() => scrollTo('features')} className="hover:text-flame transition-colors">Features</button>
-          <button onClick={() => scrollTo('about')} className="hover:text-flame transition-colors">About</button>
-          <button onClick={() => scrollTo('pricing')} className="hover:text-flame transition-colors">Pricing</button>
+        <div className="hidden md:flex items-center gap-8">
+          <button onClick={() => scrollTo('how-it-works')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>How It Works</button>
+          <button onClick={() => scrollTo('features')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>Features</button>
+          <button onClick={() => scrollTo('about')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>About</button>
+          <button onClick={() => scrollTo('pricing')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>Pricing</button>
         </div>
         {isSignedIn === true ? (
           <button
             type="button"
             onClick={() => navigate('/app')}
-            className="bg-flame hover:bg-flame/90 text-abyssal px-8 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,177,98,0.2)] hover:shadow-[0_0_30px_rgba(255,177,98,0.4)] active:scale-95 flex items-center gap-2"
+            className={`rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all flex items-center gap-1.5 ${scrolled ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#1D1D1F]'}`}
           >
             Dashboard <ArrowRight size={12} />
           </button>
@@ -161,17 +193,17 @@ export const LandingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="bg-flame hover:bg-flame/90 text-abyssal px-8 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,177,98,0.2)] hover:shadow-[0_0_30px_rgba(255,177,98,0.4)] active:scale-95"
+            className={`rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all ${scrolled ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#1D1D1F]'}`}
           >
             Sign In
           </button>
         )}
-      </nav>
+      </header>
 
       {/* Hero Section */}
-      <section className="pt-48 pb-32 px-6 md:px-12 relative overflow-hidden bg-abyssal text-white font-sans">
-        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-flame/5 rounded-full blur-[180px] -mr-96 -mt-48 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-blue/10 rounded-full blur-[180px] -ml-96 -mb-48 pointer-events-none"></div>
+      <section className="pt-36 pb-36 px-6 md:px-12 relative overflow-hidden bg-[#1D1D1F] text-white font-sans">
+        <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-accent/8 rounded-full blur-[180px] -mr-96 -mt-48 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-accent/5 rounded-full blur-[180px] -ml-96 -mb-48 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-24 relative z-10">
           <div className="flex-1 text-center lg:text-left">
@@ -180,31 +212,33 @@ export const LandingPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-flame mb-8 backdrop-blur-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-flame animate-pulse"></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-8 backdrop-blur-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                 Invoice in minutes, not hours
               </div>
-              <h1 className="text-6xl md:text-[80px] font-bold tracking-tighter mb-6 leading-[0.9] uppercase">
-                Look Like<br/>
-                <span className="text-flame">A Pro.</span><br/>
+              <h1
+                className="font-extrabold mb-6 leading-[1.05]"
+                style={{ fontSize: 'clamp(44px,7.5vw,92px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: '1.05' }}
+              >
+                Look Like<br />
+                <span className="text-accent">A Pro.</span><br />
                 <span className="text-white/30">Get Paid Faster.</span>
               </h1>
-              <p className="text-lg md:text-xl text-oatmeal/60 font-medium leading-relaxed mb-12 max-w-xl mx-auto lg:mx-0">
+              <p className="text-lg md:text-xl text-white/50 font-medium leading-relaxed mb-12 max-w-xl mx-auto lg:mx-0">
                 Stop losing hours to spreadsheets and Word templates. Invoicy generates agency-quality invoices in under 60 seconds — with live preview, 5 professional designs, and one-click PDF export.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
                 <button
                   type="button"
                   onClick={() => navigate(ctaTarget)}
-                  className="group relative w-full sm:w-auto bg-white text-abyssal px-14 py-5 rounded-xl font-bold text-sm uppercase tracking-widest transition-all overflow-hidden active:scale-95"
+                  className="rounded-full bg-white text-[#1D1D1F] h-12 px-8 text-[14px] font-semibold hover:opacity-80 transition-opacity active:scale-95 w-full sm:w-auto"
                 >
-                  <span className="relative z-10">{ctaLabel}</span>
-                  <div className="absolute inset-0 bg-flame translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  {ctaLabel}
                 </button>
                 <button
                   type="button"
                   onClick={() => scrollTo('how-it-works')}
-                  className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest"
+                  className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[14px] font-medium"
                 >
                   See how it works <ArrowRight size={14} />
                 </button>
@@ -221,7 +255,7 @@ export const LandingPage: React.FC = () => {
                     <motion.div
                       key={i}
                       whileHover={{ y: -5, scale: 1.1, zIndex: 10 }}
-                      className="w-10 h-10 rounded-full border-2 border-abyssal bg-palladian overflow-hidden shadow-xl"
+                      className="w-10 h-10 rounded-full border-2 border-[#1D1D1F] bg-[#F5F5F7] overflow-hidden shadow-xl"
                     >
                       <img
                         referrerPolicy="no-referrer"
@@ -231,15 +265,15 @@ export const LandingPage: React.FC = () => {
                     </motion.div>
                   ))}
                   <div className="pl-5 flex flex-col">
-                    <span className="text-[12px] font-black text-white uppercase tracking-widest">2,400+ freelancers</span>
+                    <span className="text-[12px] font-semibold text-white">2,400+ freelancers</span>
                     <div className="flex gap-0.5 mt-1">
-                      {[1, 2, 3, 4, 5].map(s => <Star key={s} size={8} className="text-flame fill-flame" />)}
+                      {[1, 2, 3, 4, 5].map(s => <Star key={s} size={8} className="text-accent fill-accent" />)}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 text-white/30 text-[10px] font-bold uppercase tracking-widest">
-                  <span className="flex items-center gap-1.5"><Clock size={10} /> 60-sec setup</span>
-                  <span className="flex items-center gap-1.5"><TrendingUp size={10} /> $10M+ invoiced</span>
+                <div className="flex items-center gap-6 text-white/30 text-[13px] font-medium">
+                  <span className="flex items-center gap-1.5"><Clock size={12} /> 60-sec setup</span>
+                  <span className="flex items-center gap-1.5"><TrendingUp size={12} /> $10M+ invoiced</span>
                 </div>
               </div>
             </motion.div>
@@ -259,9 +293,9 @@ export const LandingPage: React.FC = () => {
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                   className="absolute top-10 left-[20%] flex flex-col items-center"
                 >
-                  <div className="w-px h-24 bg-white/10"></div>
-                  <div className="w-10 h-10 rounded-xl bg-abyssal/50 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Zap size={16} className="text-flame" />
+                  <div className="w-px h-24 bg-white/10" />
+                  <div className="w-10 h-10 rounded-xl bg-[#1D1D1F]/50 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
+                    <Zap size={16} className="text-accent" />
                   </div>
                 </motion.div>
                 <motion.div
@@ -269,9 +303,9 @@ export const LandingPage: React.FC = () => {
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                   className="absolute top-0 right-[25%] flex flex-col items-center"
                 >
-                  <div className="w-px h-32 bg-white/10"></div>
+                  <div className="w-px h-32 bg-white/10" />
                   <div className="w-12 h-12 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Layout size={20} className="text-blue" />
+                    <Layout size={20} className="text-accent" />
                   </div>
                 </motion.div>
                 <motion.div
@@ -279,9 +313,9 @@ export const LandingPage: React.FC = () => {
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                   className="absolute bottom-20 right-10 flex flex-col items-center"
                 >
-                  <div className="w-px h-16 bg-white/10"></div>
-                  <div className="w-8 h-8 rounded-lg bg-abyssal border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Shield size={14} className="text-truffle" />
+                  <div className="w-px h-16 bg-white/10" />
+                  <div className="w-8 h-8 rounded-lg bg-[#1D1D1F] border border-white/10 flex items-center justify-center shadow-2xl">
+                    <Shield size={14} className="text-white/40" />
                   </div>
                 </motion.div>
               </div>
@@ -294,7 +328,7 @@ export const LandingPage: React.FC = () => {
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 className="relative w-full h-full flex items-center justify-center"
               >
-                <div className="absolute w-[80%] h-[80%] bg-flame/10 rounded-full blur-[100px]"></div>
+                <div className="absolute w-[80%] h-[80%] bg-accent/10 rounded-full blur-[100px]" />
                 <img
                   src={mascotImage}
                   alt="Invoicy Mascot"
@@ -307,15 +341,15 @@ export const LandingPage: React.FC = () => {
                 <motion.div
                   animate={{ y: [-10, 10], rotate: 360 }}
                   transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-[20%] right-[10%] text-flame/40"
+                  className="absolute top-[20%] right-[10%] text-accent/40"
                 >
                   <Zap size={32} />
                 </motion.div>
                 <motion.div
                   animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute bottom-[20%] left-[10%] w-12 h-12 bg-blue/20 rounded-full blur-xl"
-                ></motion.div>
+                  className="absolute bottom-[20%] left-[10%] w-12 h-12 bg-accent/20 rounded-full blur-xl"
+                />
               </motion.div>
             </motion.div>
           </div>
@@ -323,33 +357,35 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-32 px-6 md:px-12 bg-white border-y border-oatmeal/20">
+      <section id="how-it-works" className="py-32 px-6 md:px-12 bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-flame/10 border border-flame/20 text-[10px] font-bold uppercase tracking-widest text-truffle mb-6">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-6">
               Simple by design
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4 uppercase">Done in 3 Steps.</h2>
-            <p className="text-abyssal/50 max-w-xl mx-auto font-medium text-lg">No learning curve. No manual. Your first professional invoice is 60 seconds away.</p>
+            <h2
+              className="font-bold mb-4 text-foreground"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              Done in 3 Steps.
+            </h2>
+            <p className="text-muted max-w-xl mx-auto font-medium text-lg">No learning curve. No manual. Your first professional invoice is 60 seconds away.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             {/* Connector line */}
-            <div className="hidden md:block absolute top-14 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px bg-oatmeal/30"></div>
+            <div className="hidden md:block absolute top-14 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px bg-border" />
             {steps.map((step, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
-                className="relative flex flex-col items-center md:items-start text-center md:text-left p-10 rounded-2xl bg-palladian border border-oatmeal/30"
+                {...fadeUp(i * 0.12)}
+                className="relative flex flex-col items-center md:items-start text-center md:text-left p-8 rounded-2xl bg-white"
               >
-                <div className="w-14 h-14 bg-white rounded-2xl border border-oatmeal/30 flex items-center justify-center mb-6 shadow-sm relative z-10">
+                <div className="w-14 h-14 bg-[#F5F5F7] rounded-2xl border border-border flex items-center justify-center mb-6 shadow-sm relative z-10">
                   {step.icon}
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-oatmeal mb-3">{step.number}</span>
-                <h3 className="text-xl font-bold mb-3 uppercase tracking-tight">{step.title}</h3>
-                <p className="text-sm text-abyssal/55 font-medium leading-relaxed">{step.desc}</p>
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-3">{step.number}</span>
+                <h3 className="text-xl font-bold mb-3 tracking-tight text-foreground">{step.title}</h3>
+                <p className="text-sm text-muted font-medium leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -357,11 +393,11 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Marquee */}
-      <section className="py-16 bg-abyssal overflow-hidden border-y border-white/5">
+      <section className="py-16 bg-[#1D1D1F] overflow-hidden border-y border-white/5">
         <div className="relative flex overflow-x-hidden">
           <div className="animate-marquee whitespace-nowrap flex items-center py-4">
             {Array(4).fill(logos).flat().map((logo, i) => (
-              <span key={i} className="mx-16 text-3xl font-black tracking-[0.25em] text-white/10 hover:text-flame transition-all duration-300 cursor-default uppercase hover:scale-110 inline-block">
+              <span key={i} className="mx-16 text-3xl font-black tracking-[0.25em] text-white/10 hover:text-white/30 transition-all duration-300 cursor-default uppercase hover:scale-110 inline-block">
                 {logo}
               </span>
             ))}
@@ -370,17 +406,20 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-48 px-6 md:px-12 bg-white font-sans">
+      <section id="about" className="py-32 px-6 md:px-12 bg-white font-sans">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-24 items-center">
           <div className="flex-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-abyssal/5 border border-oatmeal/30 text-[10px] font-bold uppercase tracking-widest text-abyssal/50 mb-8">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-8">
               Our story
             </div>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold uppercase tracking-tighter mb-10 leading-tight">
-              Built for<br/>
-              <span className="text-abyssal/30 font-black uppercase tracking-widest px-4 py-2 bg-palladian rounded-xl border border-oatmeal/40 inline-block mt-4">Modern Businesses.</span>
+            <h2
+              className="font-bold mb-10 text-foreground leading-tight"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              Built for<br />
+              <span className="text-foreground">Modern Businesses.</span>
             </h2>
-            <div className="space-y-6 text-abyssal/60 font-medium leading-relaxed max-w-xl text-lg">
+            <div className="space-y-6 text-muted font-medium leading-relaxed max-w-xl text-lg">
               <p>
                 Invoicy was built because billing software was stuck in 2005. We believed freelancers, agencies, and small businesses deserved tools that looked as professional as their work.
               </p>
@@ -388,27 +427,27 @@ export const LandingPage: React.FC = () => {
                 We stripped away the subscription tiers, the bloated dashboards, and the ugly exports. What remained is a precision tool: fast, beautiful, and permanently yours for $20.
               </p>
             </div>
-            <div className="mt-16 grid grid-cols-2 gap-8 lg:gap-12 border-t border-oatmeal pt-12">
+            <div className="mt-16 grid grid-cols-2 gap-8 lg:gap-12 border-t border-border pt-12">
               <div>
-                <p className="text-4xl lg:text-5xl font-black mb-2 text-abyssal">2,400+</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/40">Businesses & Freelancers</p>
+                <p className="text-4xl lg:text-5xl font-black mb-2 text-foreground">2,400+</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-placeholder">Businesses & Freelancers</p>
               </div>
               <div>
-                <p className="text-4xl lg:text-5xl font-black mb-2 text-abyssal">25k+</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/40">Invoices Exported</p>
+                <p className="text-4xl lg:text-5xl font-black mb-2 text-foreground">25k+</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-placeholder">Invoices Exported</p>
               </div>
               <div>
-                <p className="text-4xl lg:text-5xl font-black mb-2 text-abyssal">$10M+</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/40">Revenue Processed</p>
+                <p className="text-4xl lg:text-5xl font-black mb-2 text-foreground">$10M+</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-placeholder">Revenue Processed</p>
               </div>
               <div>
-                <p className="text-4xl lg:text-5xl font-black mb-2 text-abyssal">60s</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/40">Avg. Invoice Created</p>
+                <p className="text-4xl lg:text-5xl font-black mb-2 text-foreground">60s</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-placeholder">Avg. Invoice Created</p>
               </div>
             </div>
           </div>
           <div className="flex-1 w-full lg:w-1/2 flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-lg aspect-square lg:aspect-[4/5] rounded-[2rem] overflow-hidden border-[12px] border-palladian shadow-2xl">
+            <div className="relative w-full max-w-lg aspect-square lg:aspect-[4/5] rounded-[2rem] overflow-hidden border-[12px] border-[#F5F5F7] shadow-2xl">
               <img
                 src={aboutImage}
                 alt="Modern office"
@@ -421,30 +460,32 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-32 px-6 md:px-12 bg-palladian">
+      <section id="features" className="py-32 px-6 md:px-12 bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-abyssal/5 border border-oatmeal/30 text-[10px] font-bold uppercase tracking-widest text-abyssal/50 mb-6">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-6">
               What you get
             </div>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6 uppercase">Why Invoicy.</h2>
-            <p className="text-abyssal/60 max-w-2xl mx-auto font-medium text-lg leading-relaxed">Everything you need to invoice professionally. Nothing you don't.</p>
+            <h2
+              className="font-bold mb-6 text-foreground"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              Why Invoicy.
+            </h2>
+            <p className="text-muted max-w-2xl mx-auto font-medium text-lg leading-relaxed">Everything you need to invoice professionally. Nothing you don't.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((f, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group p-12 rounded-2xl bg-white/50 backdrop-blur-xl border border-white/20 hover:border-flame/30 hover:bg-white transition-all duration-500"
+                {...fadeUp(i * 0.1)}
+                className="group p-8 rounded-2xl bg-white"
               >
-                <div className="w-14 h-14 bg-abyssal rounded-xl flex items-center justify-center mb-8 group-hover:bg-flame group-hover:text-abyssal transition-colors duration-500">
+                <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center mb-8">
                   {f.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-4 uppercase tracking-tighter">{f.title}</h3>
-                <p className="text-sm text-abyssal/60 font-medium leading-[1.7]">{f.desc}</p>
+                <h3 className="text-xl font-bold mb-4 tracking-tight text-foreground">{f.title}</h3>
+                <p className="text-sm text-muted font-medium leading-[1.7]">{f.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -452,27 +493,29 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-32 px-6 md:px-12 bg-abyssal text-white">
+      <section className="py-32 px-6 md:px-12 bg-[#1D1D1F] text-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-flame mb-6">
-              <Users size={10} /> 2,400+ users worldwide
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-6 flex items-center justify-center gap-2">
+              <Users size={12} /> 2,400+ users worldwide
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4 uppercase">Real People.<br/>Real Results.</h2>
+            <h2
+              className="font-bold text-white"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              Real People.<br />Real Results.
+            </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-all flex flex-col"
+                {...fadeUp(i * 0.1)}
+                className="p-8 rounded-2xl bg-white/5 border border-white/10 flex flex-col"
               >
                 <div className="flex gap-1 mb-6">
                   {Array(t.stars).fill(0).map((_, s) => (
-                    <Star key={s} size={12} className="text-flame fill-flame" />
+                    <Star key={s} size={12} className="text-accent fill-accent" />
                   ))}
                 </div>
                 <p className="text-white/70 font-medium leading-relaxed text-sm flex-1 mb-8">"{t.quote}"</p>
@@ -485,8 +528,8 @@ export const LandingPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white">{t.name}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">{t.role}</p>
+                    <p className="text-sm font-semibold text-white">{t.name}</p>
+                    <p className="text-[13px] text-[#6E6E73]">{t.role}</p>
                   </div>
                 </div>
               </motion.div>
@@ -496,36 +539,48 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-32 px-6 md:px-12 bg-palladian relative overflow-hidden">
+      <section id="pricing" className="py-32 px-6 md:px-12 bg-[#F5F5F7] relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-abyssal/5 border border-oatmeal/30 text-[10px] font-bold uppercase tracking-widest text-abyssal/50 mb-6">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-6">
               Honest pricing
             </div>
-            <h2 className="text-5xl font-bold tracking-tighter mb-6 uppercase">No Subscriptions.<br/>Ever.</h2>
-            <p className="text-abyssal/60 font-medium max-w-xl mx-auto text-lg">One price. Lifetime access. No gotchas, no paywalls after year one.</p>
+            <h2
+              className="font-bold mb-6 text-foreground"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              No Subscriptions.<br />Ever.
+            </h2>
+            <p className="text-muted font-medium max-w-xl mx-auto text-lg">One price. Lifetime access. No gotchas, no paywalls after year one.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {pricing.map((p, i) => (
-              <div key={i} className={cn(
-                "p-12 rounded-2xl border transition-all duration-700 relative flex flex-col group",
-                p.pro
-                  ? 'bg-abyssal text-white border-flame/30 hover:border-flame/60 shadow-[0_0_60px_rgba(255,177,98,0.1)]'
-                  : 'bg-white border-oatmeal/30 hover:border-oatmeal/60'
-              )}>
-                {p.pro && <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-flame text-abyssal text-[9px] font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full shadow-2xl">Most Popular</span>}
+              <div
+                key={i}
+                className={cn(
+                  "p-12 rounded-2xl relative flex flex-col",
+                  p.pro
+                    ? 'bg-[#1D1D1F] text-white'
+                    : 'bg-white border border-[#D2D2D7]'
+                )}
+              >
+                {p.pro && (
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-white text-[11px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">
+                    Most Popular
+                  </span>
+                )}
                 <div className="mb-12">
-                  <h3 className={cn("text-2xl font-bold mb-2 uppercase tracking-tighter", p.pro ? "text-white" : "text-abyssal")}>{p.name}</h3>
-                  <p className={cn("text-[10px] font-bold uppercase tracking-widest", p.pro ? "text-oatmeal/50" : "text-abyssal/30")}>{p.desc}</p>
+                  <h3 className={cn("text-2xl font-bold mb-2 tracking-tight", p.pro ? "text-white" : "text-foreground")}>{p.name}</h3>
+                  <p className={cn("text-[11px] font-semibold uppercase tracking-widest", p.pro ? "text-white/40" : "text-placeholder")}>{p.desc}</p>
                 </div>
                 <div className="flex items-baseline gap-2 mb-12">
-                  <span className={cn("text-7xl font-bold tracking-tighter", p.pro ? "text-white" : "text-abyssal")}>{p.price}</span>
-                  <span className={cn("font-bold uppercase text-[10px] tracking-widest", p.pro ? "text-oatmeal/20" : "text-abyssal/20")}>/ Lifetime</span>
+                  <span className={cn("text-7xl font-bold tracking-tighter", p.pro ? "text-white" : "text-foreground")}>{p.price}</span>
+                  <span className={cn("font-medium text-[13px]", p.pro ? "text-white/30" : "text-muted")}>/ Lifetime</span>
                 </div>
                 <div className="space-y-5 mb-16 flex-grow">
                   {p.features.map((f, j) => (
-                    <div key={j} className={cn("flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest", p.pro ? "text-oatmeal/60 group-hover:text-oatmeal" : "text-abyssal/50 group-hover:text-abyssal/70", "transition-colors")}>
-                      <Check size={14} className={p.pro ? "text-flame" : "text-abyssal/30"} />
+                    <div key={j} className={cn("flex items-center gap-4 text-[13px] font-medium", p.pro ? "text-white/70" : "text-muted")}>
+                      <Check size={14} className={p.pro ? "text-accent" : "text-accent"} />
                       {f}
                     </div>
                   ))}
@@ -534,8 +589,8 @@ export const LandingPage: React.FC = () => {
                   type="button"
                   onClick={() => navigate(ctaTarget)}
                   className={cn(
-                    "w-full py-5 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl",
-                    p.pro ? 'bg-flame text-abyssal hover:bg-[#ffbe7a]' : 'bg-abyssal text-white hover:bg-abyssal/80'
+                    "w-full h-12 rounded-full font-semibold text-[14px] transition-opacity active:scale-95 hover:opacity-80",
+                    p.pro ? 'bg-white text-[#1D1D1F]' : 'bg-[#1D1D1F] text-white'
                   )}
                 >
                   {p.button}
@@ -550,24 +605,29 @@ export const LandingPage: React.FC = () => {
       <section className="py-32 px-6 md:px-12 bg-white">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4 uppercase">Questions?<br/>Answered.</h2>
-            <p className="text-abyssal/50 font-medium text-lg">Everything you need to make a confident decision.</p>
+            <h2
+              className="font-bold mb-4 text-foreground"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              Questions?<br />Answered.
+            </h2>
+            <p className="text-muted font-medium text-lg">Everything you need to make a confident decision.</p>
           </div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="border border-oatmeal/30 rounded-2xl overflow-hidden">
+              <div key={i} className="border border-border rounded-2xl overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-8 py-6 text-left hover:bg-palladian/50 transition-colors"
+                  className="w-full flex items-center justify-between px-8 py-6 text-left hover:bg-[#F5F5F7] transition-colors"
                 >
-                  <span className="font-bold text-base tracking-tight pr-4">{faq.q}</span>
+                  <span className="font-semibold text-base tracking-tight text-foreground pr-4">{faq.q}</span>
                   <motion.div
                     animate={{ rotate: openFaq === i ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                     className="flex-shrink-0"
                   >
-                    <ChevronDown size={18} className="text-abyssal/40" />
+                    <ChevronDown size={18} className="text-muted" />
                   </motion.div>
                 </button>
                 <AnimatePresence>
@@ -579,7 +639,7 @@ export const LandingPage: React.FC = () => {
                       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="px-8 pb-6 text-abyssal/60 font-medium leading-relaxed border-t border-oatmeal/20 pt-5">
+                      <div className="px-8 pb-6 text-muted font-medium leading-relaxed border-t border-border pt-5">
                         {faq.a}
                       </div>
                     </motion.div>
@@ -589,50 +649,57 @@ export const LandingPage: React.FC = () => {
             ))}
           </div>
           <div className="mt-16 text-center">
-            <p className="text-abyssal/40 font-medium text-sm mb-4">Still have questions?</p>
-            <a href="mailto:support@invoicy.studio" className="text-flame font-bold text-sm hover:underline">support@invoicy.studio</a>
+            <p className="text-muted font-medium text-sm mb-4">Still have questions?</p>
+            <a href="mailto:support@invoicy.studio" className="text-accent font-semibold text-sm hover:underline">support@invoicy.studio</a>
           </div>
         </div>
       </section>
 
       {/* Final CTA Banner */}
-      <section className="py-24 px-6 md:px-12 bg-abyssal text-white">
+      <section className="py-36 px-6 md:px-12 bg-[#1D1D1F] text-white">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 uppercase">Ready to Invoice<br/>Like a Pro?</h2>
-          <p className="text-oatmeal/50 font-medium text-lg mb-10">Join 2,400+ businesses that bill with confidence. Free to start. $20 to own forever.</p>
-          <button
-            type="button"
-            onClick={() => navigate(ctaTarget)}
-            className="group relative bg-flame text-abyssal px-16 py-5 rounded-xl font-bold text-sm uppercase tracking-widest transition-all overflow-hidden active:scale-95 shadow-[0_0_40px_rgba(255,177,98,0.3)] hover:shadow-[0_0_60px_rgba(255,177,98,0.5)]"
-          >
-            {ctaLabel} <ArrowRight size={16} className="inline ml-2" />
-          </button>
+          <motion.div {...fadeUp()}>
+            <h2
+              className="font-bold text-white mb-6"
+              style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 700, letterSpacing: '-0.035em' }}
+            >
+              Ready to Invoice<br />Like a Pro?
+            </h2>
+            <p className="text-white/50 font-medium text-lg mb-10">Join 2,400+ businesses that bill with confidence. Free to start. $20 to own forever.</p>
+            <button
+              type="button"
+              onClick={() => navigate(ctaTarget)}
+              className="rounded-full bg-white text-[#1D1D1F] h-12 px-8 font-semibold text-[14px] hover:opacity-80 transition-opacity active:scale-95 inline-flex items-center gap-2"
+            >
+              {ctaLabel} <ArrowRight size={16} />
+            </button>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-abyssal text-oatmeal/40 py-20 px-6 md:px-12 border-t border-white/5">
+      <footer className="bg-[#1D1D1F] text-[#6E6E73] py-20 px-6 md:px-12 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-12 mb-12">
             <div className="flex items-center gap-3">
-              <Link to="/" className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-                <BrandLogo className="w-6 h-6 text-flame" />
+              <Link to="/" className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
+                <BrandLogo className="w-5 h-5" onDark={true} />
               </Link>
-              <Link to="/" className="font-bold tracking-tighter text-xl text-white uppercase">Invoicy</Link>
+              <Link to="/" className="font-semibold tracking-tight text-white" style={{ fontSize: '15px' }}>Invoicy</Link>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-8 text-[9px] font-bold uppercase tracking-[0.2em]">
-              <button onClick={() => scrollTo('how-it-works')} className="hover:text-flame transition-colors">How It Works</button>
-              <button onClick={() => scrollTo('features')} className="hover:text-flame transition-colors">Features</button>
-              <button onClick={() => scrollTo('pricing')} className="hover:text-flame transition-colors">Pricing</button>
-              <button onClick={() => navigate('/about')} className="hover:text-flame transition-colors">About</button>
-              <button onClick={() => navigate('/privacy')} className="hover:text-flame transition-colors">Privacy</button>
-              <button onClick={() => navigate('/terms')} className="hover:text-flame transition-colors">Terms</button>
-              <a href="mailto:support@invoicy.studio" className="hover:text-flame transition-colors">Support</a>
+            <div className="flex flex-wrap items-center justify-center gap-8">
+              <button onClick={() => scrollTo('how-it-works')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">How It Works</button>
+              <button onClick={() => scrollTo('features')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Features</button>
+              <button onClick={() => scrollTo('pricing')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Pricing</button>
+              <button onClick={() => navigate('/about')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">About</button>
+              <button onClick={() => navigate('/privacy')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Privacy</button>
+              <button onClick={() => navigate('/terms')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Terms</button>
+              <a href="mailto:support@invoicy.studio" className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Support</a>
             </div>
           </div>
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest">&copy; 2026 Invoicy. All rights reserved.</p>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Engineered for modern businesses.</p>
+            <p className="text-[13px] text-[#6E6E73]">&copy; 2026 Invoicy. All rights reserved.</p>
+            <p className="text-[13px] text-white/20">Engineered for modern businesses.</p>
           </div>
         </div>
       </footer>

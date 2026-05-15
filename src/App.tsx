@@ -90,9 +90,9 @@ function AppContent() {
         return <Navigate to="/app" replace />;
     }
     if (isLoading) return (
-      <div className="flex-1 min-h-screen bg-palladian flex flex-col items-center justify-center gap-4">
-        <Loader2 size={32} className="text-flame animate-spin" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/50">Loading Invoice...</p>
+      <div className="flex-1 min-h-screen bg-base flex flex-col items-center justify-center gap-4">
+        <Loader2 size={32} className="text-accent animate-spin" />
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Loading Invoice…</p>
       </div>
     );
     return <InvoiceWizard initialData={invoice!} onSave={handleSaveInvoice} />;
@@ -105,12 +105,12 @@ function AppContent() {
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login/*" element={
-          <div className="min-h-screen bg-abyssal flex items-center justify-center">
+          <div className="min-h-screen bg-[#1D1D1F] flex items-center justify-center">
             <SignIn forceRedirectUrl="/app" signUpUrl="/sign-up" />
           </div>
         } />
         <Route path="/sign-up/*" element={
-          <div className="min-h-screen bg-abyssal flex items-center justify-center">
+          <div className="min-h-screen bg-[#1D1D1F] flex items-center justify-center">
             <SignUp forceRedirectUrl="/app" signInUrl="/login" />
           </div>
         } />

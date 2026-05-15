@@ -8,9 +8,9 @@ export const AuthGuard: React.FC = () => {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-palladian flex flex-col items-center justify-center gap-4">
-        <Loader2 size={32} className="text-flame animate-spin" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-abyssal/40">Loading Vault...</p>
+      <div className="min-h-screen bg-base flex flex-col items-center justify-center gap-4">
+        <Loader2 size={32} className="text-accent animate-spin" />
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Loading…</p>
       </div>
     );
   }

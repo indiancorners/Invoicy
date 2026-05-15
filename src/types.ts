@@ -1,6 +1,6 @@
 export type ThemeType = 'minimalist' | 'corporate' | 'retro' | 'clean' | 'modern';
 
-export type InvoiceStatus = 'draft' | 'sent' | 'paid';
+export type InvoiceStatus = 'draft' | 'sent' | 'viewed' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled';
 
 export interface InvoiceItem {
   id: string;
@@ -34,6 +34,7 @@ export interface InvoiceData {
   items: InvoiceItem[];
   taxRate: number;
   currency: string;
+  paymentTerms?: string;
   notes: string;
   theme: ThemeType;
   signature?: string;

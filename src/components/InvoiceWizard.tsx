@@ -61,8 +61,9 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
       }
       toast.success(`${type.toUpperCase()} exported successfully!`, { id: toastId });
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error("Export failed:", error);
-      toast.error(`Failed to export ${type.toUpperCase()}. Pop-ups might be blocked.`, { id: toastId });
+      toast.error(`Export failed: ${msg}`, { id: toastId });
     } finally {
       setIsExporting(false);
       setExportingType(null);
@@ -80,10 +81,10 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
 
   return (
     <>
-    {/* Hidden export capture — fixed position so parent overflow:hidden doesn't clip it */}
+    {/* Hidden export capture — fixed off-screen; id="invoice-capture" lives on InvoicePreview root */}
     <div
       aria-hidden="true"
-      style={{ position: 'fixed', left: '-9999px', top: 0, width: '794px', pointerEvents: 'none', zIndex: -100, overflow: 'hidden' }}
+      style={{ position: 'fixed', left: '-9999px', top: 0, width: '794px', pointerEvents: 'none', zIndex: -100 }}
     >
       <InvoicePreview data={data} />
     </div>

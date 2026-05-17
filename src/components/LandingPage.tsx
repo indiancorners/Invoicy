@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Check, Eye, Layers, Lock, Shield, Star, ChevronDown, FileText, Download, Clock, Users, TrendingUp, Zap, Layout } from 'lucide-react';
+import { ArrowRight, Check, Eye, Layers, Lock, Star, ChevronDown, FileText, Download, Clock, Users, TrendingUp, Layout } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { BrandLogo } from './BrandLogo';
 import { useAuth } from '@clerk/clerk-react';
-import mascotImage from '../assets/images/regenerated_image_1778569549463.png';
 import aboutImage from '../assets/images/regenerated_image_1778571099227.png';
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -156,36 +155,36 @@ export const LandingPage: React.FC = () => {
       {/* Navigation — scroll-aware frosted glass */}
       <header
         className="fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-6 md:px-12 transition-all duration-300"
-        style={scrolled ? {
-          background: 'rgba(255,255,255,0.72)',
+        style={{
+          background: 'rgba(255,255,255,0.85)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          boxShadow: '0 1px 0 rgba(0,0,0,0.08)',
-        } : { background: 'transparent' }}
+          boxShadow: scrolled ? '0 1px 0 rgba(0,0,0,0.08)' : 'none',
+        }}
       >
         <div className="flex items-center gap-3">
-          <Link to="/" className={`w-8 h-8 rounded-xl flex items-center justify-center border group cursor-pointer transition-all ${scrolled ? 'bg-foreground/5 border-border hover:border-accent/40' : 'bg-white/10 border-white/15 hover:border-white/30'}`}>
-            <BrandLogo className="w-5 h-5 group-hover:scale-110 transition-transform" onDark={!scrolled} />
+          <Link to="/" className="w-8 h-8 rounded-xl flex items-center justify-center border bg-foreground/5 border-border hover:border-accent/40 group cursor-pointer transition-all">
+            <BrandLogo className="w-5 h-5 group-hover:scale-110 transition-transform" onDark={false} />
           </Link>
           <Link
             to="/"
-            className={`font-semibold tracking-tight transition-colors ${scrolled ? 'text-foreground' : 'text-white'}`}
+            className="font-semibold tracking-tight text-foreground"
             style={{ fontSize: '15px' }}
           >
             Invoicy
           </Link>
         </div>
         <div className="hidden md:flex items-center gap-8">
-          <button onClick={() => scrollTo('how-it-works')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>How It Works</button>
-          <button onClick={() => scrollTo('features')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>Features</button>
-          <button onClick={() => scrollTo('about')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>About</button>
-          <button onClick={() => scrollTo('pricing')} className={`text-[13px] transition-colors ${scrolled ? 'text-muted hover:text-foreground' : 'text-white/60 hover:text-white'}`}>Pricing</button>
+          <button onClick={() => scrollTo('how-it-works')} className="text-[13px] text-muted hover:text-foreground transition-colors">How It Works</button>
+          <button onClick={() => scrollTo('features')} className="text-[13px] text-muted hover:text-foreground transition-colors">Features</button>
+          <button onClick={() => scrollTo('about')} className="text-[13px] text-muted hover:text-foreground transition-colors">About</button>
+          <button onClick={() => scrollTo('pricing')} className="text-[13px] text-muted hover:text-foreground transition-colors">Pricing</button>
         </div>
         {isSignedIn === true ? (
           <button
             type="button"
             onClick={() => navigate('/app')}
-            className={`rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all flex items-center gap-1.5 ${scrolled ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#1D1D1F]'}`}
+            className="rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all flex items-center gap-1.5 bg-[#1D1D1F] text-white"
           >
             Dashboard <ArrowRight size={12} />
           </button>
@@ -193,7 +192,7 @@ export const LandingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className={`rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all ${scrolled ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#1D1D1F]'}`}
+            className="rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all bg-[#1D1D1F] text-white"
           >
             Sign In
           </button>
@@ -201,158 +200,81 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-36 pb-36 px-6 md:px-12 relative overflow-hidden bg-[#1D1D1F] text-white font-sans">
-        <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-accent/8 rounded-full blur-[180px] -mr-96 -mt-48 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-accent/5 rounded-full blur-[180px] -ml-96 -mb-48 pointer-events-none" />
+      <section className="pt-40 pb-36 px-6 md:px-12 relative overflow-hidden bg-white font-sans">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-accent/5 rounded-full blur-[160px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-24 relative z-10">
-          <div className="flex-1 text-center lg:text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F5F5F7] border border-border text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              Invoice in minutes, not hours
+            </div>
+            <h1
+              className="font-extrabold mb-6 text-foreground leading-[1.05]"
+              style={{ fontSize: 'clamp(44px,7.5vw,92px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: '1.05' }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold uppercase tracking-widest text-placeholder mb-8 backdrop-blur-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                Invoice in minutes, not hours
-              </div>
-              <h1
-                className="font-extrabold mb-6 leading-[1.05]"
-                style={{ fontSize: 'clamp(44px,7.5vw,92px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: '1.05' }}
+              Look Like<br />
+              <span className="text-accent">A Pro.</span><br />
+              <span className="text-foreground/25">Get Paid Faster.</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted font-medium leading-relaxed mb-12 max-w-2xl mx-auto">
+              Stop losing hours to spreadsheets and Word templates. Invoicy generates agency-quality invoices in under 60 seconds — with live preview, 5 professional designs, and one-click PDF export.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+              <button
+                type="button"
+                onClick={() => navigate(ctaTarget)}
+                className="rounded-full bg-[#1D1D1F] text-white h-12 px-8 text-[14px] font-semibold hover:opacity-80 transition-opacity active:scale-95 w-full sm:w-auto"
               >
-                Look Like<br />
-                <span className="text-accent">A Pro.</span><br />
-                <span className="text-white/30">Get Paid Faster.</span>
-              </h1>
-              <p className="text-lg md:text-xl text-white/50 font-medium leading-relaxed mb-12 max-w-xl mx-auto lg:mx-0">
-                Stop losing hours to spreadsheets and Word templates. Invoicy generates agency-quality invoices in under 60 seconds — with live preview, 5 professional designs, and one-click PDF export.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-                <button
-                  type="button"
-                  onClick={() => navigate(ctaTarget)}
-                  className="rounded-full bg-white text-[#1D1D1F] h-12 px-8 text-[14px] font-semibold hover:opacity-80 transition-opacity active:scale-95 w-full sm:w-auto"
-                >
-                  {ctaLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollTo('how-it-works')}
-                  className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[14px] font-medium"
-                >
-                  See how it works <ArrowRight size={14} />
-                </button>
-              </div>
-              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-                <div className="flex -space-x-3 items-center">
-                  {[
-                    { seed: "felix", name: "Felix" },
-                    { seed: "lisa", name: "Lisa" },
-                    { seed: "alex", name: "Alex" },
-                    { seed: "sophia", name: "Sophia" },
-                    { seed: "marc", name: "Marc" }
-                  ].map((u, i) => (
-                    <motion.div
-                      key={i}
-                      whileHover={{ y: -5, scale: 1.1, zIndex: 10 }}
-                      className="w-10 h-10 rounded-full border-2 border-[#1D1D1F] bg-[#F5F5F7] overflow-hidden shadow-xl"
-                    >
-                      <img
-                        referrerPolicy="no-referrer"
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
-                        alt={u.name}
-                      />
-                    </motion.div>
-                  ))}
-                  <div className="pl-5 flex flex-col">
-                    <span className="text-[12px] font-semibold text-white">2,400+ freelancers</span>
-                    <div className="flex gap-0.5 mt-1">
-                      {[1, 2, 3, 4, 5].map(s => <Star key={s} size={8} className="text-accent fill-accent" />)}
-                    </div>
+                {ctaLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollTo('how-it-works')}
+                className="flex items-center gap-2 text-muted hover:text-foreground transition-colors text-[14px] font-medium"
+              >
+                See how it works <ArrowRight size={14} />
+              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <div className="flex -space-x-3 items-center">
+                {[
+                  { seed: "felix", name: "Felix" },
+                  { seed: "lisa", name: "Lisa" },
+                  { seed: "alex", name: "Alex" },
+                  { seed: "sophia", name: "Sophia" },
+                  { seed: "marc", name: "Marc" }
+                ].map((u, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -5, scale: 1.1, zIndex: 10 }}
+                    className="w-10 h-10 rounded-full border-2 border-white bg-[#F5F5F7] overflow-hidden shadow-md"
+                  >
+                    <img
+                      referrerPolicy="no-referrer"
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
+                      alt={u.name}
+                    />
+                  </motion.div>
+                ))}
+                <div className="pl-5 flex flex-col text-left">
+                  <span className="text-[12px] font-semibold text-foreground">2,400+ freelancers</span>
+                  <div className="flex gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map(s => <Star key={s} size={8} className="text-accent fill-accent" />)}
                   </div>
                 </div>
-                <div className="flex items-center gap-6 text-white/30 text-[13px] font-medium">
-                  <span className="flex items-center gap-1.5"><Clock size={12} /> 60-sec setup</span>
-                  <span className="flex items-center gap-1.5"><TrendingUp size={12} /> $10M+ invoiced</span>
-                </div>
               </div>
-            </motion.div>
-          </div>
-
-          {/* Mascot Section */}
-          <div className="flex-1 relative w-full lg:w-auto flex justify-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="relative z-10 w-full max-w-lg aspect-square flex items-center justify-center"
-            >
-              <div className="absolute inset-0 pointer-events-none">
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute top-10 left-[20%] flex flex-col items-center"
-                >
-                  <div className="w-px h-24 bg-white/10" />
-                  <div className="w-10 h-10 rounded-xl bg-[#1D1D1F]/50 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Zap size={16} className="text-accent" />
-                  </div>
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  className="absolute top-0 right-[25%] flex flex-col items-center"
-                >
-                  <div className="w-px h-32 bg-white/10" />
-                  <div className="w-12 h-12 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Layout size={20} className="text-accent" />
-                  </div>
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  className="absolute bottom-20 right-10 flex flex-col items-center"
-                >
-                  <div className="w-px h-16 bg-white/10" />
-                  <div className="w-8 h-8 rounded-lg bg-[#1D1D1F] border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Shield size={14} className="text-white/40" />
-                  </div>
-                </motion.div>
+              <div className="flex items-center gap-6 text-muted text-[13px] font-medium">
+                <span className="flex items-center gap-1.5"><Clock size={12} /> 60-sec setup</span>
+                <span className="flex items-center gap-1.5"><TrendingUp size={12} /> $10M+ invoiced</span>
               </div>
-
-              <motion.div
-                animate={{
-                  y: [0, -20, 0],
-                  rotate: [0, 1, -1, 0]
-                }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full h-full flex items-center justify-center"
-              >
-                <div className="absolute w-[80%] h-[80%] bg-accent/10 rounded-full blur-[100px]" />
-                <img
-                  src={mascotImage}
-                  alt="Invoicy Mascot"
-                  className="w-[120%] h-[120%] object-cover object-center relative z-10 drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] rounded-[2rem] border-4 border-white/10"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop";
-                  }}
-                  referrerPolicy="no-referrer"
-                />
-                <motion.div
-                  animate={{ y: [-10, 10], rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-[20%] right-[10%] text-accent/40"
-                >
-                  <Zap size={32} />
-                </motion.div>
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute bottom-[20%] left-[10%] w-12 h-12 bg-accent/20 rounded-full blur-xl"
-                />
-              </motion.div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 

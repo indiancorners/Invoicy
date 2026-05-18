@@ -62,7 +62,13 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
       toast.success(`${type.toUpperCase()} exported successfully!`, { id: toastId });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      console.error("Export failed:", error);
+      // Surface the failure mode so debugging in production is tractable.
+      const hint =
+        msg.includes('not found') ? '(preview element missing)' :
+        msg.toLowerCase().includes('tainted') ? '(image CORS / tainted canvas)' :
+        msg.toLowerCase().includes('oklch') ? '(unparsed oklch color)' :
+        '';
+      console.error(`[Wizard] ${type.toUpperCase()} export failed ${hint}:`, error);
       toast.error(`Export failed: ${msg}`, { id: toastId });
     } finally {
       setIsExporting(false);

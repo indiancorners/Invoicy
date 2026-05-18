@@ -1,12 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { InvoiceData } from '../types';
-import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, DollarSign, ArrowUpRight, Zap, Target, Layout, Mail, Phone, MapPin, AlertCircle } from 'lucide-react';
+import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, DollarSign, ArrowUpRight, Zap, Target, Layout, Mail, Phone, MapPin, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '../lib/utils';
+import { cn, exportToPDF } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useInvoicyPro } from '../hooks/useInvoicyPro';
 import { toast } from 'sonner';
 import { UpgradeModal } from './UpgradeModal';
+import { InvoicePreview } from './InvoicePreview';
+
+// InvoicePreview renders an outer <div id="invoice-capture"> — target that
+// directly when triggering a Dashboard download.
+const CAPTURE_ID = 'invoice-capture';
 
 interface DashboardProps {
   invoices: InvoiceData[];
@@ -21,7 +26,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'sent' | 'paid'>('all');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const pro = useInvoicyPro();
+
+  const downloadingInvoice = useMemo(
+    () => invoices.find((i) => i.id === downloadingId) ?? null,
+    [downloadingId, invoices]
+  );
+
+  useEffect(() => {
+    if (!downloadingInvoice) return;
+    let cancelled = false;
+    const filename = `Invoice-${downloadingInvoice.number || downloadingInvoice.id}`;
+    const toastId = toast.loading('Preparing PDF…');
+    (async () => {
+      try {
+        // Two RAFs give React + fonts time to mount and lay out the preview.
+        await new Promise<void>((r) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => r()))
+        );
+        if (cancelled) return;
+        await exportToPDF(CAPTURE_ID, filename);
+        if (!cancelled) toast.success('PDF downloaded.', { id: toastId });
+      } catch (err) {
+        console.error('[Dashboard] PDF export failed:', err);
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : String(err);
+          toast.error(`Download failed: ${msg}`, { id: toastId });
+        }
+      } finally {
+        if (!cancelled) setDownloadingId(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [downloadingInvoice]);
+
+  const handleDownload = (invoice: InvoiceData) => {
+    if (!pro.isPremium) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    if (downloadingId) return; // already exporting
+    setDownloadingId(invoice.id);
+  };
 
   const stats = useMemo(() => {
     const total = invoices.reduce((acc, inv) => {
@@ -259,7 +306,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                     </td>
                     <td className="px-10 py-6">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                         <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} />
+                         <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
                       </div>
                     </td>
                   </tr>
@@ -305,7 +352,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                       <Edit2 size={14} /> Open Invoice
                     </button>
                     <div className="flex items-center gap-2">
-                       <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} />
+                       <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
                     </div>
                   </div>
                 </motion.div>
@@ -333,6 +380,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
           )}
         </div>
       </main>
+
+      {/* Hidden export capture — mounted only while a download is in-flight.
+          InvoicePreview already exposes id="invoice-capture" on its wrapper. */}
+      {downloadingInvoice && (
+        <div
+          aria-hidden="true"
+          style={{ position: 'fixed', left: '-9999px', top: 0, width: '794px', pointerEvents: 'none', zIndex: -100 }}
+        >
+          <InvoicePreview data={downloadingInvoice} />
+        </div>
+      )}
 
       {/* Upgrade Modal */}
       <UpgradeModal
@@ -406,7 +464,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, canShare, onShareLimited }: { invoice: InvoiceData; setDeleteConfirmId: (id: string) => void; navigate: ReturnType<typeof useNavigate>; canShare: boolean; onShareLimited: () => void }) => {
+const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, canShare, onShareLimited, onDownload, isDownloading }: { invoice: InvoiceData; setDeleteConfirmId: (id: string) => void; navigate: ReturnType<typeof useNavigate>; canShare: boolean; onShareLimited: () => void; onDownload: (inv: InvoiceData) => void; isDownloading: boolean }) => {
   return (
     <>
       <button
@@ -419,6 +477,21 @@ const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, canShare, onShar
         title="Edit"
       >
         <Edit2 size={16} />
+      </button>
+      <button
+        type="button"
+        disabled={isDownloading}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDownload(invoice);
+        }}
+        className={cn(
+          "p-2 hover:bg-subtle rounded-full text-muted hover:text-accent transition-all",
+          isDownloading && "opacity-50 cursor-wait"
+        )}
+        title={canShare ? "Download PDF" : "Download PDF — Pro only"}
+      >
+        {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
       </button>
       <button
         type="button"

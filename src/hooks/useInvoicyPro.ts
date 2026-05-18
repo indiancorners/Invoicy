@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { supabase } from '../lib/supabaseClient';
 
+export const FREE_INVOICE_LIMIT = 1;
+
 export const useInvoicyPro = () => {
   const { userId, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -60,12 +62,12 @@ export const useInvoicyPro = () => {
     }
   };
 
-  // Free tier: 1 invoice max. Returns true when the user has hit or exceeded their limit.
-  const isLimitReached = (count: number) => !isPremium && count >= 1;
+  const isLimitReached = (count: number) => !isPremium && count >= FREE_INVOICE_LIMIT;
 
   return {
     isPremium,
     activatePro,
-    isLimitReached
+    isLimitReached,
+    freeLimit: FREE_INVOICE_LIMIT,
   };
 };

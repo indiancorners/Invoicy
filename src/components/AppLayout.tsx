@@ -117,13 +117,13 @@ export const AppLayout: React.FC = () => {
                      <h4 className="text-[13px] font-bold text-white mb-4 leading-tight">
                         {pro.isPremium
                           ? "You have lifetime access to all studio assets."
-                          : "Only 1 invoice limit. Unlock Unlimited Access."}
+                          : `Only ${pro.freeLimit} invoice limit. Unlock Unlimited Access.`}
                      </h4>
                      {!pro.isPremium && (
                        <div className="mb-4 bg-white/5 rounded-lg p-3 border border-white/5">
                          <div className="flex justify-between items-center">
                            <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Free Plan</span>
-                           <span className="text-[8px] font-bold text-accent uppercase tracking-widest">1 Invoice Max</span>
+                           <span className="text-[8px] font-bold text-accent uppercase tracking-widest">{pro.freeLimit} Invoice Max</span>
                          </div>
                        </div>
                      )}

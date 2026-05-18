@@ -33,24 +33,28 @@ function AppContent() {
 
   const navigate = useNavigate();
 
+  const loadInvoices = () => {
+    if (!isSignedIn || !userId) return;
+    setIsLoading(true);
+    setFetchError(null);
+    fetchInvoices(userId)
+      .then(data => setInvoices(data))
+      .catch(err => {
+        console.error("Failed to fetch invoices from Supabase:", err);
+        setFetchError('Failed to load invoices. Check your connection and retry.');
+      })
+      .finally(() => setIsLoading(false));
+  };
+
   useEffect(() => {
     if (isSignedIn && userId) {
-      setIsLoading(true);
-      setFetchError(null);
-      fetchInvoices(userId)
-        .then(data => setInvoices(data))
-        .catch(err => {
-          console.error("Failed to fetch invoices from Supabase:", err);
-          setFetchError('Failed to load invoices. Please refresh to try again.');
-          toast.error('Failed to load invoices.');
-        })
-        .finally(() => setIsLoading(false));
+      loadInvoices();
     } else {
       setInvoices([]);
       setFetchError(null);
       setIsLoading(false);
     }
-  }, [isSignedIn, userId]);
+  }, [isSignedIn, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSaveInvoice = async (data: InvoiceData) => {
     if (!userId) return;
@@ -140,7 +144,7 @@ function AppContent() {
         {/* Protected Routes */}
         <Route element={<AuthGuard />}>
           <Route element={<AppLayout />}>
-            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} isLoading={isLoading} fetchError={fetchError} />} />
+            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} isLoading={isLoading} fetchError={fetchError} onRetryFetch={loadInvoices} />} />
             <Route path="/app/create" element={<InvoiceWizard initialData={DEFAULT_INVOICE()} onSave={handleSaveInvoice} />} />
             <Route path="/app/edit/:id" element={<EditRoute />} />
             <Route path="/app/settings" element={<Settings />} />

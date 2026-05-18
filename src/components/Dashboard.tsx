@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { InvoiceData } from '../types';
-import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, DollarSign, ArrowUpRight, Zap, Target, Layout, Mail, Phone, MapPin, AlertCircle, Loader2 } from 'lucide-react';
+import { InvoiceData, InvoiceStatus } from '../types';
+import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, ArrowUpRight, Zap, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn, exportToPDF } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -8,6 +8,16 @@ import { useInvoicyPro } from '../hooks/useInvoicyPro';
 import { toast } from 'sonner';
 import { UpgradeModal } from './UpgradeModal';
 import { InvoicePreview } from './InvoicePreview';
+
+const STATUS_LABELS: Record<string, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  viewed: 'Viewed',
+  partially_paid: 'Partial',
+  paid: 'Paid',
+  overdue: 'Overdue',
+  cancelled: 'Cancelled',
+};
 
 // InvoicePreview renders an outer <div id="invoice-capture"> — target that
 // directly when triggering a Dashboard download.
@@ -18,12 +28,13 @@ interface DashboardProps {
   onDelete: (id: string) => void;
   isLoading: boolean;
   fetchError?: string | null;
+  onRetryFetch?: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoading, fetchError }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoading, fetchError, onRetryFetch }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'sent' | 'paid'>('all');
+  const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -35,7 +46,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
   );
 
   useEffect(() => {
-    if (!downloadingInvoice) return;
+    // Bug 1 fix: always clear stale downloadingId if invoice isn't found
+    if (!downloadingInvoice) { setDownloadingId(null); return; }
     let cancelled = false;
     const filename = `Invoice-${downloadingInvoice.number || downloadingInvoice.id}`;
     const toastId = toast.loading('Preparing PDF…');
@@ -50,15 +62,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
         if (!cancelled) toast.success('PDF downloaded.', { id: toastId });
       } catch (err) {
         console.error('[Dashboard] PDF export failed:', err);
-        if (!cancelled) {
-          const msg = err instanceof Error ? err.message : String(err);
-          toast.error(`Download failed: ${msg}`, { id: toastId });
-        }
+        // Bug 12 fix: show friendly message, not raw internal error
+        if (!cancelled) toast.error('PDF export failed. Please try again.', { id: toastId });
       } finally {
         if (!cancelled) setDownloadingId(null);
       }
     })();
-    return () => { cancelled = true; };
+    // Bug 2 fix: dismiss the loading toast if the effect is cleaned up (navigation away)
+    return () => { cancelled = true; toast.dismiss(toastId); };
   }, [downloadingInvoice]);
 
   const handleDownload = (invoice: InvoiceData) => {
@@ -72,22 +83,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
 
   const stats = useMemo(() => {
     const total = invoices.reduce((acc, inv) => {
-        const subtotal = inv.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
-        return acc + subtotal * (1 + inv.taxRate / 100);
+      // Bug 11 fix: guard against undefined items/taxRate
+      const subtotal = (inv.items ?? []).reduce(
+        (sum, item) => sum + (item.quantity ?? 0) * (item.price ?? 0), 0
+      );
+      return acc + subtotal * (1 + (inv.taxRate ?? 0) / 100);
     }, 0);
     const paid = invoices.filter(i => i.status === 'paid').length;
-    const pending = invoices.filter(i => i.status === 'sent').length;
-    return { total, paid, pending };
+    // Bug 8 fix: "Awaiting" = sent + overdue + viewed (all outstanding invoices)
+    const pending = invoices.filter(i => ['sent', 'overdue', 'viewed'].includes(i.status)).length;
+    // Bug 9 fix: derive dominant currency symbol (use most common; fall back to no symbol)
+    const currencyCounts: Record<string, number> = {};
+    invoices.forEach(inv => {
+      if (inv.currency) currencyCounts[inv.currency] = (currencyCounts[inv.currency] ?? 0) + 1;
+    });
+    const currencyEntries = Object.entries(currencyCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
+    const dominantCurrency = currencyEntries[0]?.[0] ?? '';
+    const mixedCurrencies = Object.keys(currencyCounts).length > 1;
+    return { total, paid, pending, dominantCurrency, mixedCurrencies };
   }, [invoices]);
 
   const filteredInvoices = invoices.filter(inv =>
     (statusFilter === 'all' || inv.status === statusFilter) &&
-    (inv.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    inv.receiver.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    // Bug 10 fix: guard against undefined number/receiver.name
+    ((inv.number ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (inv.receiver?.name ?? '').toLowerCase().includes(searchTerm.toLowerCase()))
   ).sort((a, b) => b.lastModified - a.lastModified);
 
   const calculateTotal = (inv: InvoiceData) => {
-    return inv.items.reduce((sum, item) => sum + item.quantity * item.price, 0) * (1 + inv.taxRate / 100);
+    // Bug 11 fix: guard against undefined items/taxRate
+    return (inv.items ?? []).reduce(
+      (sum, item) => sum + (item.quantity ?? 0) * (item.price ?? 0), 0
+    ) * (1 + (inv.taxRate ?? 0) / 100);
   };
 
   if (isLoading) {
@@ -152,11 +179,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
               {!pro.isPremium && (
                 <span className={cn(
                   "inline-flex items-center mt-2 px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest border",
-                  invoices.length >= 1
+                  pro.isLimitReached(invoices.length)
                     ? "bg-warning/10 text-warning border-warning/20"
                     : "bg-subtle text-muted border-border"
                 )}>
-                  {invoices.length >= 1 ? "1/1 free invoice used" : "1 free invoice available"}
+                  {`${invoices.length}/${pro.freeLimit} invoice${pro.freeLimit === 1 ? '' : 's'} used`}
                 </span>
               )}
            </div>
@@ -193,11 +220,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
            </div>
         </header>
 
-        {/* Error Banner */}
+        {/* Error Banner — Bug 3 fix: single notification (no duplicate toast), with Retry */}
         {fetchError && (
-          <div className="flex items-center gap-4 bg-danger/10 border border-danger/30 rounded-2xl p-5">
-            <AlertCircle size={18} className="text-danger flex-shrink-0" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-danger">{fetchError}</p>
+          <div className="flex items-center justify-between gap-4 bg-danger/10 border border-danger/30 rounded-2xl p-5">
+            <div className="flex items-center gap-3">
+              <AlertCircle size={18} className="text-danger flex-shrink-0" />
+              <p className="text-[11px] font-medium text-danger">{fetchError}</p>
+            </div>
+            {onRetryFetch && (
+              <button
+                onClick={onRetryFetch}
+                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-danger border border-danger/30 rounded-full px-4 py-2 hover:bg-danger/10 transition-colors shrink-0"
+              >
+                <RefreshCw size={12} /> Retry
+              </button>
+            )}
           </div>
         )}
 
@@ -206,7 +243,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
           <div className="bg-white border border-[#D2D2D7] p-8 rounded-2xl flex items-start justify-between">
             <div>
               <p className="text-[9px] font-bold text-placeholder uppercase tracking-widest mb-3">Total Volume</p>
-              <h3 className="text-4xl font-bold tracking-tighter">${stats.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+              <h3 className="text-4xl font-bold tracking-tighter">
+                {stats.mixedCurrencies ? '' : stats.dominantCurrency}{stats.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+              {stats.mixedCurrencies && <p className="text-[9px] text-placeholder font-bold uppercase tracking-widest mt-1">Mixed currencies</p>}
             </div>
             <div className="w-12 h-12 bg-subtle rounded-xl flex items-center justify-center text-foreground">
               <TrendingUp size={20} />
@@ -247,7 +287,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                 />
               </div>
               <div className="flex items-center gap-2 bg-subtle p-1.5 rounded-full border border-border overflow-x-auto w-full sm:w-auto">
-                {(['all', 'draft', 'sent', 'paid'] as const).map(status => (
+                {(['all', 'draft', 'sent', 'overdue', 'paid'] as const).map(status => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
@@ -306,7 +346,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                     </td>
                     <td className="px-10 py-6">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                         <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
+                         <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} isPro={pro.isPremium} onProLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
                       </div>
                     </td>
                   </tr>
@@ -333,7 +373,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                        </div>
                        <div>
                          <span className="text-[9px] font-bold uppercase tracking-widest text-placeholder block mb-1">{inv.number}</span>
-                         <h4 className="font-bold text-lg leading-none text-foreground uppercase">{inv.receiver.name}</h4>
+                         <h4 className="font-bold text-lg leading-none text-foreground uppercase">{inv.receiver?.name}</h4>
                        </div>
                     </div>
                     <StatusBadge status={inv.status} />
@@ -352,7 +392,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                       <Edit2 size={14} /> Open Invoice
                     </button>
                     <div className="flex items-center gap-2">
-                       <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} canShare={pro.isPremium} onShareLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
+                       <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} isPro={pro.isPremium} onProLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
                     </div>
                   </div>
                 </motion.div>
@@ -455,16 +495,20 @@ const StatusBadge = ({ status }: { status: string }) => {
   return (
     <span className={cn(
       "px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border",
-      status === 'paid' && "bg-success/10 text-success border-success/20",
-      status === 'sent' && "bg-accent-light text-accent border-accent/20",
-      status === 'draft' && "bg-subtle text-muted border-border",
+      status === 'paid'          && "bg-success/10 text-success border-success/20",
+      status === 'sent'          && "bg-accent-light text-accent border-accent/20",
+      status === 'draft'         && "bg-subtle text-muted border-border",
+      status === 'viewed'        && "bg-blue-50 text-blue-500 border-blue-200",
+      status === 'partially_paid' && "bg-warning/10 text-warning border-warning/20",
+      status === 'overdue'       && "bg-danger/10 text-danger border-danger/20",
+      status === 'cancelled'     && "bg-subtle text-placeholder border-border line-through",
     )}>
-      {status}
+      {STATUS_LABELS[status] ?? status}
     </span>
   );
 };
 
-const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, canShare, onShareLimited, onDownload, isDownloading }: { invoice: InvoiceData; setDeleteConfirmId: (id: string) => void; navigate: ReturnType<typeof useNavigate>; canShare: boolean; onShareLimited: () => void; onDownload: (inv: InvoiceData) => void; isDownloading: boolean }) => {
+const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, isPro, onProLimited, onDownload, isDownloading }: { invoice: InvoiceData; setDeleteConfirmId: (id: string) => void; navigate: ReturnType<typeof useNavigate>; isPro: boolean; onProLimited: () => void; onDownload: (inv: InvoiceData) => void; isDownloading: boolean }) => {
   return (
     <>
       <button
@@ -489,22 +533,22 @@ const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, canShare, onShar
           "p-2 hover:bg-subtle rounded-full text-muted hover:text-accent transition-all",
           isDownloading && "opacity-50 cursor-wait"
         )}
-        title={canShare ? "Download PDF" : "Download PDF — Pro only"}
+        title={isPro ? "Download PDF" : "Upgrade to download PDF"}
       >
         {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
       </button>
       <button
         type="button"
         className="p-2 hover:bg-subtle rounded-full text-muted hover:text-accent transition-all"
-        title="Share"
+        title={isPro ? "Copy share link" : "Upgrade to share invoice"}
         onClick={(e) => {
-            e.stopPropagation();
-            if (!canShare) {
-              onShareLimited();
-              return;
-            }
-            navigator.clipboard.writeText(window.location.origin + `/preview/${invoice.id}`);
-            toast.success('Link copied to clipboard!');
+          e.stopPropagation();
+          if (!isPro) {
+            onProLimited();
+            return;
+          }
+          navigator.clipboard.writeText(window.location.origin + `/preview/${invoice.id}`);
+          toast.success('Link copied to clipboard!');
         }}
       >
         <Share2 size={16} />

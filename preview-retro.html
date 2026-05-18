@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794px">
+<title>Invoice Preview — Retro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #d6d0c4; display: flex; justify-content: center; padding: 40px 0; font-family: 'Playfair Display', Georgia, serif; }
+  .page { width: 794px; min-height: 1123px; background: #fdfaf6; box-shadow: 0 0 80px rgba(0,0,0,0.18); position: relative;
+    background-image: radial-gradient(#e5e1d8 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .retro-outer { padding: 28px; min-height: 1123px; display: flex; flex-direction: column; }
+  .retro-inner { background: white; border: 2px solid #8b0000; box-shadow: 8px 8px 0px #8b0000; flex-grow: 1; display: flex; flex-direction: column; padding: 48px; position: relative; }
+  .retro-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #8b0000; padding-bottom: 32px; margin-bottom: 48px; }
+  .retro-title { font-size: 64px; font-weight: 900; text-transform: uppercase; color: #8b0000; letter-spacing: -2px; line-height: 1; font-family: 'Playfair Display', serif; }
+  .retro-num { text-align: right; border-left: 2px solid #8b0000; padding-left: 24px; }
+  .retro-num-val { font-size: 18px; font-weight: 700; color: #8b0000; }
+  .retro-num-date { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; margin-top: 8px; }
+  .retro-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+  .retro-party { border: 2px solid #8b0000; padding: 24px; background: #fdfaf6; position: relative; padding-top: 32px; }
+  .retro-party-badge { background: #8b0000; color: white; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; padding: 4px 8px; display: inline-block; border: 2px solid #8b0000; position: absolute; top: -16px; left: 16px; font-family: 'Inter', sans-serif; }
+  .retro-party-name { font-size: 20px; font-weight: 900; text-transform: uppercase; color: #8b0000; margin-bottom: 8px; }
+  .retro-party-address { font-size: 13px; font-weight: 500; line-height: 1.6; white-space: pre-line; margin-bottom: 8px; }
+  .retro-party-gst { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #8b0000; font-family: 'Inter', sans-serif; }
+  table { width: 100%; text-align: left; border: 2px solid #8b0000; background: white; font-family: 'Inter', sans-serif; border-collapse: collapse; }
+  thead tr { background: #8b0000; }
+  thead tr th { padding: 14px 16px; color: white; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 3px; border-right: 2px solid #8b0000; }
+  thead tr th:last-child { border-right: none; }
+  thead tr th:nth-child(2) { text-align: center; }
+  thead tr th:nth-child(3), thead tr th:nth-child(4) { text-align: right; }
+  tbody tr { border-bottom: 2px solid #8b0000; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr td { padding: 14px 16px; border-right: 2px solid #8b0000; font-size: 13px; }
+  tbody tr td:last-child { border-right: none; }
+  tbody tr td:nth-child(1) { font-weight: 700; }
+  tbody tr td:nth-child(2) { text-align: center; font-family: monospace; }
+  tbody tr td:nth-child(3) { text-align: right; font-family: monospace; }
+  tbody tr td:nth-child(4) { text-align: right; font-weight: 700; color: #8b0000; font-family: monospace; }
+  .retro-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 48px; padding-top: 32px; border-top: 4px double #8b0000; }
+  .retro-notes { max-width: 280px; }
+  .retro-notes-badge { background: #8b0000; color: white; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; padding: 4px 8px; display: inline-block; margin-bottom: 8px; font-family: 'Inter', sans-serif; }
+  .retro-notes-text { font-size: 13px; font-weight: 500; border-left: 2px solid #8b0000; padding-left: 16px; line-height: 1.6; font-family: 'Inter', sans-serif; }
+  .retro-totals { width: 256px; border: 2px solid #8b0000; padding: 24px; background: #fdfaf6; box-shadow: 4px 4px 0px #8b0000; }
+  .retro-total-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 2px dotted #8b0000; font-family: 'Inter', sans-serif; }
+  .retro-total-row span:first-child { text-transform: uppercase; color: #8b0000; }
+  .retro-total-row span:last-child { font-family: monospace; }
+  .retro-total-row:last-of-type { margin-bottom: 16px; }
+  .retro-grand { display: flex; justify-content: space-between; align-items: center; background: #8b0000; color: white; margin: -24px; margin-top: 16px; padding: 16px 24px; }
+  .retro-grand span:first-child { font-size: 10px; text-transform: uppercase; letter-spacing: 4px; font-weight: 700; font-family: 'Inter', sans-serif; }
+  .retro-grand span:last-child { font-size: 22px; font-weight: 900; font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="retro-outer">
+    <div class="retro-inner">
+      <div class="retro-header">
+        <h1 class="retro-title">INVOICE</h1>
+        <div class="retro-num">
+          <p class="retro-num-val">No. INV-2026-042</p>
+          <p class="retro-num-date">D: May 18, 2026</p>
+        </div>
+      </div>
+
+      <div class="retro-parties">
+        <div class="retro-party">
+          <span class="retro-party-badge">FROM</span>
+          <p class="retro-party-name">Pixel Studio Co.</p>
+          <p class="retro-party-address">42 Design Lane
+San Francisco, CA 94105
+United States</p>
+          <p class="retro-party-gst">GSTIN: 27AABCP1234E1Z5</p>
+        </div>
+        <div class="retro-party">
+          <span class="retro-party-badge">TO</span>
+          <p class="retro-party-name">TechGrowth Inc.</p>
+          <p class="retro-party-address">100 Innovation Blvd
+Austin, TX 78701
+United States</p>
+          <p class="retro-party-gst">GSTIN: 29AABCT5678F1Z8</p>
+        </div>
+      </div>
+
+      <div style="flex-grow:1">
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Qty</th>
+              <th>Rate</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Website Redesign &amp; UX Overhaul</td>
+              <td>1</td>
+              <td>$2,500.00</td>
+              <td>$2,500.00</td>
+            </tr>
+            <tr>
+              <td>Frontend Development (React)</td>
+              <td>40</td>
+              <td>$95.00</td>
+              <td>$3,800.00</td>
+            </tr>
+            <tr>
+              <td>Brand Identity &amp; Logo Design</td>
+              <td>1</td>
+              <td>$1,800.00</td>
+              <td>$1,800.00</td>
+            </tr>
+            <tr>
+              <td>SEO Strategy &amp; Implementation</td>
+              <td>3</td>
+              <td>$450.00</td>
+              <td>$1,350.00</td>
+            </tr>
+            <tr>
+              <td>Project Management &amp; Coordination</td>
+              <td>1</td>
+              <td>$750.00</td>
+              <td>$750.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="retro-footer">
+        <div class="retro-notes">
+          <span class="retro-notes-badge">NOTES</span>
+          <p class="retro-notes-text">Payment due within 30 days. Bank transfers and major credit cards accepted. Late payments subject to 1.5% monthly interest. Thank you for your business.</p>
+        </div>
+        <div class="retro-totals">
+          <div class="retro-total-row">
+            <span>Subtotal</span>
+            <span>$10,200.00</span>
+          </div>
+          <div class="retro-total-row">
+            <span>Tax (18%)</span>
+            <span>$1,836.00</span>
+          </div>
+          <div class="retro-grand">
+            <span>Total</span>
+            <span>$12,036.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

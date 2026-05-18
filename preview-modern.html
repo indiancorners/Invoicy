@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794px">
+<title>Invoice Preview — Modern</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f0f0; display: flex; justify-content: center; padding: 40px 0; font-family: 'Inter', sans-serif; }
+  .page { width: 794px; min-height: 1123px; background: white; box-shadow: 0 0 80px rgba(0,0,0,0.18); }
+  .invoice { display: flex; flex-direction: column; min-height: 1123px; background: white; color: #111; padding: 48px; letter-spacing: -0.01em; }
+  .modern-top { margin-bottom: 64px; }
+  .modern-rule-top { width: 100%; height: 1px; background: #111; margin-bottom: 32px; }
+  .modern-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  .modern-sender-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .modern-sender-address { font-size: 13px; color: #6b7280; white-space: pre-line; line-height: 1.6; max-width: 260px; }
+  .modern-sender-gst { font-size: 11px; color: #9ca3af; margin-top: 8px; font-weight: 500; }
+  .modern-invoice-right { text-align: right; }
+  .modern-invoice-title { font-size: 36px; font-weight: 300; letter-spacing: -2px; margin-bottom: 16px; }
+  .modern-invoice-grid { display: inline-grid; grid-template-columns: auto auto; gap: 4px 32px; font-size: 13px; text-align: left; }
+  .modern-invoice-grid .label { color: #9ca3af; }
+  .modern-invoice-grid .value { font-weight: 500; }
+  .modern-client { margin-bottom: 48px; }
+  .modern-client-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: #9ca3af; margin-bottom: 16px; }
+  .modern-client-name { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+  .modern-client-address { color: #6b7280; font-size: 13px; line-height: 1.7; max-width: 320px; white-space: pre-line; margin-bottom: 8px; }
+  .modern-client-gst { color: #9ca3af; font-size: 11px; font-weight: 500; }
+  .modern-items { flex-grow: 1; }
+  .modern-rule { width: 100%; height: 1px; background: #111; margin-bottom: 16px; }
+  .modern-items-header { display: grid; grid-template-columns: 6fr 2fr 2fr 2fr; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: #9ca3af; padding-bottom: 16px; }
+  .modern-items-header div:nth-child(3), .modern-items-header div:nth-child(4) { text-align: right; }
+  .modern-rule-light { width: 100%; height: 1px; background: #e5e7eb; margin-bottom: 16px; }
+  .modern-item { display: grid; grid-template-columns: 6fr 2fr 2fr 2fr; font-size: 13px; padding: 16px 0; border-bottom: 1px solid #f3f4f6; }
+  .modern-item:last-child { border-bottom: none; }
+  .modern-item div:nth-child(1) { font-weight: 500; }
+  .modern-item div:nth-child(2) { color: #6b7280; }
+  .modern-item div:nth-child(3) { text-align: right; color: #6b7280; }
+  .modern-item div:nth-child(4) { text-align: right; font-weight: 500; }
+  .modern-rule-bottom { width: 100%; height: 1px; background: #111; margin-top: 16px; }
+  .modern-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 48px; }
+  .modern-footer-left { max-width: 360px; }
+  .modern-notes { font-size: 12px; color: #6b7280; line-height: 1.7; }
+  .modern-totals { width: 288px; }
+  .modern-total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; color: #6b7280; }
+  .modern-total-row span:last-child { font-weight: 500; color: #111; }
+  .modern-total-row.divider { border-bottom: 1px solid #e5e7eb; }
+  .modern-total-final { display: flex; justify-content: space-between; padding: 16px 0; font-size: 22px; font-weight: 300; }
+  .modern-total-final span:last-child { font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="invoice">
+    <div class="modern-top">
+      <div class="modern-rule-top"></div>
+      <div class="modern-meta">
+        <div>
+          <p class="modern-sender-name">Pixel Studio Co.</p>
+          <p class="modern-sender-address">42 Design Lane
+San Francisco, CA 94105
+United States</p>
+          <p class="modern-sender-gst">GSTIN: 27AABCP1234E1Z5</p>
+        </div>
+        <div class="modern-invoice-right">
+          <h1 class="modern-invoice-title">Invoice INV-2026-042</h1>
+          <div class="modern-invoice-grid">
+            <span class="label">Date</span>
+            <span class="value">May 18, 2026</span>
+            <span class="label">Due</span>
+            <span class="value">June 18, 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modern-client">
+      <p class="modern-client-label">Client</p>
+      <h2 class="modern-client-name">TechGrowth Inc.</h2>
+      <p class="modern-client-address">100 Innovation Blvd
+Austin, TX 78701
+United States</p>
+      <p class="modern-client-gst">GSTIN: 29AABCT5678F1Z8</p>
+    </div>
+
+    <div class="modern-items">
+      <div class="modern-rule"></div>
+      <div class="modern-items-header">
+        <div>Description</div>
+        <div>Qty</div>
+        <div>Unit Price</div>
+        <div>Amount</div>
+      </div>
+      <div class="modern-rule-light"></div>
+      <div class="modern-item">
+        <div>Website Redesign &amp; UX Overhaul</div>
+        <div>1</div>
+        <div>$2,500.00</div>
+        <div>$2,500.00</div>
+      </div>
+      <div class="modern-item">
+        <div>Frontend Development (React)</div>
+        <div>40</div>
+        <div>$95.00</div>
+        <div>$3,800.00</div>
+      </div>
+      <div class="modern-item">
+        <div>Brand Identity &amp; Logo Design</div>
+        <div>1</div>
+        <div>$1,800.00</div>
+        <div>$1,800.00</div>
+      </div>
+      <div class="modern-item">
+        <div>SEO Strategy &amp; Implementation</div>
+        <div>3</div>
+        <div>$450.00</div>
+        <div>$1,350.00</div>
+      </div>
+      <div class="modern-item">
+        <div>Project Management &amp; Coordination</div>
+        <div>1</div>
+        <div>$750.00</div>
+        <div>$750.00</div>
+      </div>
+      <div class="modern-rule-bottom"></div>
+    </div>
+
+    <div class="modern-footer">
+      <div class="modern-footer-left">
+        <p class="modern-notes">Payment due within 30 days of invoice date. Bank transfers and major credit cards accepted. Late payments subject to 1.5% monthly interest. Thank you for your continued business.</p>
+      </div>
+      <div class="modern-totals">
+        <div class="modern-total-row">
+          <span>Subtotal</span>
+          <span>$10,200.00</span>
+        </div>
+        <div class="modern-total-row divider">
+          <span>Tax (18%)</span>
+          <span>$1,836.00</span>
+        </div>
+        <div class="modern-total-final">
+          <span>Total</span>
+          <span>$12,036.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

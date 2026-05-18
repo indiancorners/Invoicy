@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794px">
+<title>Invoice Preview — Corporate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #e8e8e8; display: flex; justify-content: center; padding: 40px 0; font-family: 'Inter', sans-serif; }
+  .page { width: 794px; min-height: 1123px; background: #f8fafc; box-shadow: 0 0 80px rgba(0,0,0,0.18); position: relative; display: flex; flex-direction: column; }
+  .corp-header { background: #0f172a; color: white; padding: 48px; }
+  .corp-header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
+  .corp-sender { display: flex; align-items: center; gap: 24px; }
+  .corp-logo-placeholder { width: 64px; height: 64px; background: #1e293b; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #94a3b8; }
+  .corp-sender-info h1 { font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; }
+  .corp-sender-info p { color: #94a3b8; font-size: 13px; margin-top: 4px; white-space: pre-line; }
+  .corp-sender-info .gst { color: #64748b; font-size: 11px; margin-top: 4px; font-weight: 700; }
+  .corp-invoice-tag { text-align: right; }
+  .corp-invoice-tag h2 { font-size: 34px; font-weight: 900; text-transform: uppercase; letter-spacing: 6px; color: #334155; margin-bottom: 8px; }
+  .corp-invoice-tag p { font-size: 13px; font-weight: 700; color: #94a3b8; }
+  .corp-body { padding: 48px; flex-grow: 1; display: flex; flex-direction: column; }
+  .corp-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+  .corp-meta-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #94a3b8; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+  .corp-billed-name { font-weight: 700; font-size: 18px; margin-bottom: 4px; }
+  .corp-billed-address { font-size: 13px; color: #475569; white-space: pre-line; }
+  .corp-billed-gst { font-size: 11px; color: #64748b; font-weight: 700; margin-top: 8px; }
+  .corp-dates { text-align: right; }
+  .corp-dates-inner { display: flex; justify-content: flex-end; gap: 32px; font-size: 13px; }
+  .corp-dates-inner div { color: #64748b; font-weight: 500; }
+  table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  thead { background: #e2e8f0; }
+  thead tr th { padding: 14px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #475569; }
+  thead tr th:nth-child(2) { text-align: center; }
+  thead tr th:nth-child(3), thead tr th:nth-child(4) { text-align: right; }
+  tbody tr { border-bottom: 1px solid #e2e8f0; background: white; }
+  tbody tr td { padding: 14px 16px; }
+  tbody tr td:nth-child(1) { font-weight: 700; }
+  tbody tr td:nth-child(2) { text-align: center; color: #64748b; }
+  tbody tr td:nth-child(3) { text-align: right; color: #64748b; }
+  tbody tr td:nth-child(4) { text-align: right; font-weight: 700; color: #0f172a; }
+  .corp-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 48px; }
+  .corp-notes-box { background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; }
+  .corp-notes-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
+  .corp-notes-text { font-size: 13px; color: #475569; }
+  .corp-totals-box { background: #0f172a; color: white; padding: 32px; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); align-self: flex-end; }
+  .corp-total-row { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; margin-bottom: 12px; }
+  .corp-total-row span:last-child { color: white; }
+  .corp-total-final { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 24px; }
+  .corp-total-final span:first-child { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: #94a3b8; }
+  .corp-total-final span:last-child { font-size: 36px; font-weight: 900; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="corp-header">
+    <div class="corp-header-inner">
+      <div class="corp-sender">
+        <div class="corp-logo-placeholder">LOGO</div>
+        <div class="corp-sender-info">
+          <h1>Pixel Studio Co.</h1>
+          <p>42 Design Lane
+San Francisco, CA 94105</p>
+          <p class="gst">GSTIN: 27AABCP1234E1Z5</p>
+        </div>
+      </div>
+      <div class="corp-invoice-tag">
+        <h2>INVOICE</h2>
+        <p>#INV-2026-042</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="corp-body">
+    <div class="corp-meta">
+      <div>
+        <p class="corp-meta-label">Billed To</p>
+        <p class="corp-billed-name">TechGrowth Inc.</p>
+        <p class="corp-billed-address">100 Innovation Blvd
+Austin, TX 78701
+United States</p>
+        <p class="corp-billed-gst">GSTIN: 29AABCT5678F1Z8</p>
+      </div>
+      <div class="corp-dates">
+        <p class="corp-meta-label" style="text-align:right">Invoice Details</p>
+        <div class="corp-dates-inner">
+          <div>Issue Date<br>May 18, 2026</div>
+          <div>Due Date<br>June 18, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow:1">
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Website Redesign &amp; UX Overhaul</td>
+            <td>1</td>
+            <td>$2,500.00</td>
+            <td>$2,500.00</td>
+          </tr>
+          <tr>
+            <td>Frontend Development (React)</td>
+            <td>40</td>
+            <td>$95.00</td>
+            <td>$3,800.00</td>
+          </tr>
+          <tr>
+            <td>Brand Identity &amp; Logo Design</td>
+            <td>1</td>
+            <td>$1,800.00</td>
+            <td>$1,800.00</td>
+          </tr>
+          <tr>
+            <td>SEO Strategy &amp; Implementation</td>
+            <td>3</td>
+            <td>$450.00</td>
+            <td>$1,350.00</td>
+          </tr>
+          <tr>
+            <td>Project Management &amp; Coordination</td>
+            <td>1</td>
+            <td>$750.00</td>
+            <td>$750.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="corp-footer">
+      <div class="corp-notes-box">
+        <p class="corp-notes-label">Terms &amp; Information</p>
+        <p class="corp-notes-text">Payment due within 30 days of invoice date. Bank transfers and major credit cards accepted. Late payments subject to 1.5% monthly interest. Thank you for your continued business.</p>
+      </div>
+      <div class="corp-totals-box">
+        <div class="corp-total-row">
+          <span>Subtotal</span>
+          <span>$10,200.00</span>
+        </div>
+        <div class="corp-total-row">
+          <span>Tax (18%)</span>
+          <span>$1,836.00</span>
+        </div>
+        <div class="corp-total-final">
+          <span>Total Due</span>
+          <span>$12,036.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

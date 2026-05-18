@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794px">
+<title>Invoice Preview — Clean</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #e8eaf0; display: flex; justify-content: center; padding: 40px 0; font-family: 'Inter', sans-serif; }
+  .page { width: 794px; min-height: 1123px; background: white; box-shadow: 0 0 80px rgba(0,0,0,0.18); }
+  .invoice { display: flex; flex-direction: column; min-height: 1123px; background: white; color: #1f2937; padding: 64px; }
+  .clean-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 64px; padding-bottom: 32px; border-bottom: 1px solid #f3f4f6; }
+  .clean-sender { display: flex; align-items: center; gap: 32px; }
+  .clean-logo-placeholder { width: 48px; height: 48px; background: #4f46e5; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; }
+  .clean-sender-name { font-size: 26px; font-weight: 700; color: #111827; letter-spacing: -0.5px; }
+  .clean-sender-address { color: #6b7280; font-size: 13px; margin-top: 4px; white-space: pre-line; }
+  .clean-sender-gst { color: #9ca3af; font-size: 11px; margin-top: 4px; font-weight: 500; }
+  .clean-invoice-label { text-align: right; }
+  .clean-invoice-label h2 { font-size: 44px; font-weight: 300; letter-spacing: -2px; color: #d1d5db; margin-bottom: 8px; }
+  .clean-invoice-meta { font-size: 13px; font-weight: 500; }
+  .clean-invoice-meta .num { color: #6b7280; }
+  .clean-invoice-meta .sep { color: #d1d5db; margin: 0 8px; }
+  .clean-invoice-meta .date { color: #374151; }
+  .clean-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-bottom: 64px; }
+  .clean-party-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: #4f46e5; margin-bottom: 16px; }
+  .clean-party-name { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+  .clean-party-address { color: #4b5563; font-size: 13px; line-height: 1.7; white-space: pre-line; margin-bottom: 8px; max-width: 280px; }
+  .clean-party-gst { color: #9ca3af; font-size: 11px; font-weight: 500; }
+  .clean-dates-card { background: #f9fafb; border-radius: 16px; padding: 24px; border: 1px solid #f3f4f6; }
+  .clean-dates-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+  .clean-dates-row:last-child { margin-bottom: 0; }
+  .clean-dates-row span:first-child { color: #6b7280; font-weight: 500; }
+  .clean-dates-row span:last-child { font-weight: 700; color: #111827; }
+  .clean-dates-row .due { color: #4f46e5; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr th { padding-bottom: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: #6b7280; border-bottom: 2px solid #111827; }
+  thead tr th:nth-child(2) { text-align: center; }
+  thead tr th:nth-child(3), thead tr th:nth-child(4) { text-align: right; }
+  thead tr th:nth-child(4) { color: #111827; }
+  tbody tr { border-bottom: 1px solid #f3f4f6; }
+  tbody tr td { padding: 24px 0; font-size: 13px; }
+  tbody tr td:nth-child(1) { font-weight: 500; color: #111827; }
+  tbody tr td:nth-child(2) { text-align: center; color: #6b7280; }
+  tbody tr td:nth-child(3) { text-align: right; color: #6b7280; }
+  tbody tr td:nth-child(4) { text-align: right; font-weight: 700; color: #111827; }
+  .clean-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 64px; padding-top: 32px; border-top: 1px solid #f3f4f6; }
+  .clean-footer-left { max-width: 320px; }
+  .clean-note-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: #9ca3af; margin-bottom: 8px; }
+  .clean-note-text { font-size: 13px; color: #4b5563; line-height: 1.6; }
+  .clean-totals { width: 288px; background: #f9fafb; padding: 24px; border-radius: 16px; border: 1px solid #f3f4f6; }
+  .clean-total-row { display: flex; justify-content: space-between; font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+  .clean-total-row span:last-child { font-weight: 500; color: #111827; }
+  .clean-total-divider { border-bottom: 1px solid #e5e7eb; margin-bottom: 16px; padding-bottom: 4px; }
+  .clean-total-final { display: flex; justify-content: space-between; align-items: center; color: #4f46e5; }
+  .clean-total-final span:first-child { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; }
+  .clean-total-final span:last-child { font-size: 24px; font-weight: 900; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="invoice">
+    <div class="clean-header">
+      <div class="clean-sender">
+        <div class="clean-logo-placeholder">L</div>
+        <div>
+          <h1 class="clean-sender-name">Pixel Studio Co.</h1>
+          <p class="clean-sender-address">42 Design Lane, San Francisco, CA 94105</p>
+          <p class="clean-sender-gst">GSTIN: 27AABCP1234E1Z5</p>
+        </div>
+      </div>
+      <div class="clean-invoice-label">
+        <h2>INVOICE</h2>
+        <div class="clean-invoice-meta">
+          <span class="num">#INV-2026-042</span>
+          <span class="sep">|</span>
+          <span class="date">May 18, 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="clean-parties">
+      <div>
+        <p class="clean-party-label">Invoice To</p>
+        <p class="clean-party-name">TechGrowth Inc.</p>
+        <p class="clean-party-address">100 Innovation Blvd
+Austin, TX 78701
+United States</p>
+        <p class="clean-party-gst">GSTIN: 29AABCT5678F1Z8</p>
+      </div>
+      <div>
+        <div class="clean-dates-card">
+          <div class="clean-dates-row">
+            <span>Invoice Date</span>
+            <span>May 18, 2026</span>
+          </div>
+          <div class="clean-dates-row">
+            <span>Due Date</span>
+            <span class="due">June 18, 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow:1">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left">Task Description</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Website Redesign &amp; UX Overhaul</td>
+            <td>1</td>
+            <td>$2,500.00</td>
+            <td>$2,500.00</td>
+          </tr>
+          <tr>
+            <td>Frontend Development (React)</td>
+            <td>40</td>
+            <td>$95.00</td>
+            <td>$3,800.00</td>
+          </tr>
+          <tr>
+            <td>Brand Identity &amp; Logo Design</td>
+            <td>1</td>
+            <td>$1,800.00</td>
+            <td>$1,800.00</td>
+          </tr>
+          <tr>
+            <td>SEO Strategy &amp; Implementation</td>
+            <td>3</td>
+            <td>$450.00</td>
+            <td>$1,350.00</td>
+          </tr>
+          <tr>
+            <td>Project Management &amp; Coordination</td>
+            <td>1</td>
+            <td>$750.00</td>
+            <td>$750.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="clean-footer">
+      <div class="clean-footer-left">
+        <p class="clean-note-label">Note</p>
+        <p class="clean-note-text">Payment due within 30 days. Bank transfers and major credit cards accepted. Late payments subject to 1.5% monthly interest. Thank you for your continued business.</p>
+      </div>
+      <div class="clean-totals">
+        <div class="clean-total-row">
+          <span>Subtotal</span>
+          <span>$10,200.00</span>
+        </div>
+        <div class="clean-total-row clean-total-divider">
+          <span>Tax (18%)</span>
+          <span>$1,836.00</span>
+        </div>
+        <div class="clean-total-final">
+          <span>Total Due</span>
+          <span>$12,036.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

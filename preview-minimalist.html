@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794px">
+<title>Invoice Preview — Minimalist</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f0f0; display: flex; justify-content: center; padding: 40px 0; font-family: 'Inter', Helvetica, Arial, sans-serif; }
+  .page { width: 794px; min-height: 1123px; background: white; box-shadow: 0 0 80px rgba(0,0,0,0.18); position: relative; }
+  .invoice { display: flex; flex-direction: column; min-height: 1123px; background: white; color: black; padding: 48px; font-family: 'Inter', Helvetica, Arial, sans-serif; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid black; padding-bottom: 32px; margin-bottom: 48px; }
+  .header-left { display: flex; align-items: center; gap: 24px; }
+  .invoice-title { font-size: 52px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 1; }
+  .header-right { text-align: right; }
+  .invoice-number { font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: 4px; }
+  .invoice-date { font-size: 16px; font-weight: 500; margin-top: 4px; }
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 64px; }
+  .party { border-left: 2px solid black; padding-left: 16px; }
+  .party-label { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; color: black; margin-bottom: 16px; }
+  .party-name { font-size: 18px; font-weight: 700; text-transform: uppercase; line-height: 1.2; margin-bottom: 8px; }
+  .party-address { font-size: 13px; font-weight: 500; line-height: 1.5; white-space: pre-line; }
+  .party-gst { font-size: 11px; font-weight: 700; margin-top: 8px; }
+  .items { flex-grow: 1; }
+  .items-header { display: grid; grid-template-columns: 6fr 2fr 2fr 2fr; gap: 24px; border-bottom: 2px solid black; padding-bottom: 16px; margin-bottom: 16px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; }
+  .items-header div:nth-child(3), .items-header div:nth-child(4) { text-align: right; }
+  .items-header div:nth-child(2) { text-align: center; }
+  .item-row { display: grid; grid-template-columns: 6fr 2fr 2fr 2fr; gap: 24px; padding: 16px 0; border-bottom: 1px solid #e5e5e5; font-size: 13px; font-weight: 500; }
+  .item-row div:nth-child(1) { font-weight: 700; }
+  .item-row div:nth-child(2) { text-align: center; }
+  .item-row div:nth-child(3) { text-align: right; }
+  .item-row div:nth-child(4) { text-align: right; font-weight: 900; }
+  .footer { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 48px; padding-top: 32px; border-top: 2px solid black; }
+  .notes-label { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; color: black; margin-bottom: 8px; }
+  .notes-text { font-size: 13px; font-weight: 500; line-height: 1.6; }
+  .totals { text-align: right; max-width: 300px; margin-left: auto; width: 100%; }
+  .total-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .total-row span:first-child { text-transform: uppercase; letter-spacing: 3px; color: #666; }
+  .total-final { display: flex; justify-content: space-between; font-size: 28px; font-weight: 900; border-top: 2px solid black; padding-top: 16px; margin-top: 16px; }
+  .total-final span:first-child { text-transform: uppercase; letter-spacing: -1px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="invoice">
+    <div class="header">
+      <div class="header-left">
+        <h1 class="invoice-title">INVOICE</h1>
+      </div>
+      <div class="header-right">
+        <p class="invoice-number">INV-2026-042</p>
+        <p class="invoice-date">May 18, 2026</p>
+      </div>
+    </div>
+
+    <div class="parties">
+      <div class="party">
+        <p class="party-label">From</p>
+        <p class="party-name">Pixel Studio Co.</p>
+        <p class="party-address">42 Design Lane
+San Francisco, CA 94105
+United States</p>
+        <p class="party-gst">GSTIN: 27AABCP1234E1Z5</p>
+      </div>
+      <div class="party">
+        <p class="party-label">To</p>
+        <p class="party-name">TechGrowth Inc.</p>
+        <p class="party-address">100 Innovation Blvd
+Austin, TX 78701
+United States</p>
+        <p class="party-gst">GSTIN: 29AABCT5678F1Z8</p>
+      </div>
+    </div>
+
+    <div class="items">
+      <div class="items-header">
+        <div>Description</div>
+        <div style="text-align:center">Qty</div>
+        <div style="text-align:right">Price</div>
+        <div style="text-align:right">Total</div>
+      </div>
+      <div class="item-row">
+        <div>Website Redesign &amp; UX Overhaul</div>
+        <div>1</div>
+        <div>$2,500.00</div>
+        <div>$2,500.00</div>
+      </div>
+      <div class="item-row">
+        <div>Frontend Development (React)</div>
+        <div>40</div>
+        <div>$95.00</div>
+        <div>$3,800.00</div>
+      </div>
+      <div class="item-row">
+        <div>Brand Identity &amp; Logo Design</div>
+        <div>1</div>
+        <div>$1,800.00</div>
+        <div>$1,800.00</div>
+      </div>
+      <div class="item-row">
+        <div>SEO Strategy &amp; Implementation</div>
+        <div>3</div>
+        <div>$450.00</div>
+        <div>$1,350.00</div>
+      </div>
+      <div class="item-row">
+        <div>Project Management &amp; Coordination</div>
+        <div>1</div>
+        <div>$750.00</div>
+        <div>$750.00</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>
+        <p class="notes-label">Notes</p>
+        <p class="notes-text">Payment due within 30 days of invoice date. Bank transfers and major credit cards accepted. Late payments subject to 1.5% monthly interest. Thank you for your continued business.</p>
+      </div>
+      <div class="totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span>$10,200.00</span>
+        </div>
+        <div class="total-row">
+          <span>Tax (18%)</span>
+          <span>$1,836.00</span>
+        </div>
+        <div class="total-final">
+          <span>Total</span>
+          <span>$12,036.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

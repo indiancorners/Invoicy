@@ -547,7 +547,11 @@ const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, isPro, onProLimi
             onProLimited();
             return;
           }
-          navigator.clipboard.writeText(window.location.origin + `/preview/${invoice.id}`);
+          if (!invoice.publicToken) {
+            toast.error('This invoice was created before share links — open and re-save it to enable sharing.');
+            return;
+          }
+          navigator.clipboard.writeText(`${window.location.origin}/preview/${invoice.id}?t=${invoice.publicToken}`);
           toast.success('Link copied to clipboard!');
         }}
       >

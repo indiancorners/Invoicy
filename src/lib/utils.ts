@@ -29,11 +29,17 @@ function rewriteOklchInCss(css: string): string {
   return css.replace(/oklch\([^)]+\)/g, (m) => toRgb(m));
 }
 
+// Single-value color props — value is just a color, use toRgb().
 const COLOR_PROPS = [
   'color', 'background-color',
   'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
   'outline-color', 'text-decoration-color', 'caret-color',
+  'fill', 'stroke', 'accent-color', 'column-rule-color',
 ];
+
+// Multi-token props — value contains a color among other tokens (offsets,
+// gradients, etc). Must use rewriteOklchInCss to preserve the rest of the value.
+const COMPOUND_PROPS = ['background-image', 'box-shadow', 'text-shadow'];
 
 function patchOklch(doc: Document, root: HTMLElement) {
   const win = doc.defaultView ?? window;
@@ -46,11 +52,10 @@ function patchOklch(doc: Document, root: HTMLElement) {
       const v = cs.getPropertyValue(p);
       if (v && v.includes('oklch')) el.style.setProperty(p, toRgb(v));
     });
-    const bgImg = cs.getPropertyValue('background-image');
-    if (bgImg && bgImg.includes('oklch')) {
-      // Rewrite gradients in-place rather than dropping them entirely.
-      el.style.setProperty('background-image', rewriteOklchInCss(bgImg));
-    }
+    COMPOUND_PROPS.forEach((p) => {
+      const v = cs.getPropertyValue(p);
+      if (v && v.includes('oklch')) el.style.setProperty(p, rewriteOklchInCss(v));
+    });
   });
 
   // 2) Stylesheet rules — Tailwind v4 emits CSS custom properties on :root

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { FileDown, ImageDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { InvoiceData } from '../types';
@@ -12,12 +12,16 @@ type FetchState = 'loading' | 'found' | 'not-found';
 
 export const PreviewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('t');
   const [fetchState, setFetchState] = useState<FetchState>('loading');
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    if (!id) {
+    // Require both id and token. Without the token, we don't even hit Supabase
+    // — prevents enumeration of invoice IDs from the network panel.
+    if (!id || !token) {
       setFetchState('not-found');
       return;
     }
@@ -40,6 +44,16 @@ export const PreviewPage: React.FC = () => {
           setFetchState('not-found');
           return;
         }
+
+        // Token must match exactly. Old invoices created before this fix have
+        // no publicToken and are therefore not shareable until re-saved — by
+        // design, that's the whole point of the gate.
+        const expected = (content as any).publicToken;
+        if (!expected || expected !== token) {
+          setFetchState('not-found');
+          return;
+        }
+
         setInvoice(content as InvoiceData);
         setFetchState('found');
       } catch {
@@ -48,7 +62,7 @@ export const PreviewPage: React.FC = () => {
     };
 
     fetchInvoice();
-  }, [id]);
+  }, [id, token]);
 
   const handleExportPDF = async () => {
     if (!invoice || isExporting) return;

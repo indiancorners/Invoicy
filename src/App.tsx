@@ -22,11 +22,13 @@ import { LegalPage } from './components/Legal';
 import { PreviewPage } from './components/PreviewPage';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
-import { DEFAULT_INVOICE, InvoiceData } from './types';
+import { DEFAULT_INVOICE, InvoiceData, newPublicToken } from './types';
 import { fetchInvoices, saveInvoice, deleteInvoice } from './lib/invoiceService';
+import { useInvoicyPro } from './hooks/useInvoicyPro';
 
 function AppContent() {
   const { isSignedIn, userId, isLoaded } = useAuth();
+  const pro = useInvoicyPro();
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -58,14 +60,32 @@ function AppContent() {
 
   const handleSaveInvoice = async (data: InvoiceData) => {
     if (!userId) return;
+
+    // Re-check free-tier limit on save — Dashboard's "New Invoice" button gate
+    // can be bypassed by deep-linking to /app/create. Existing invoices (edits)
+    // are always allowed.
+    const isEdit = invoices.some(i => i.id === data.id);
+    if (!isEdit && pro.isLimitReached(invoices.length)) {
+      toast.error('Free plan limit reached. Upgrade to create more invoices.');
+      navigate('/app');
+      return;
+    }
+
+    // Backfill publicToken on legacy invoices saved before share-link tokens
+    // were introduced. New invoices get one in DEFAULT_INVOICE.
+    const stamped = {
+      ...data,
+      publicToken: data.publicToken || newPublicToken(),
+      lastModified: Date.now(),
+    };
     try {
-      await saveInvoice(data, userId);
+      await saveInvoice(stamped, userId);
       setInvoices(prev => {
-        const exists = prev.find(i => i.id === data.id);
+        const exists = prev.find(i => i.id === stamped.id);
         if (exists) {
-          return prev.map(i => i.id === data.id ? { ...data, lastModified: Date.now() } : i);
+          return prev.map(i => i.id === stamped.id ? stamped : i);
         }
-        return [...prev, { ...data, lastModified: Date.now() }];
+        return [...prev, stamped];
       });
       toast.success('Invoice saved.');
       navigate('/app');

@@ -11,20 +11,23 @@ export const useInvoicyPro = () => {
 
   useEffect(() => {
     if (isSignedIn && userId) {
-      // Check for test emails
       const email = user?.primaryEmailAddress?.emailAddress;
 
-      if (email === 'pro@invoicy.test' || email === 'premium@invoicy.test' || email?.includes('+pro')) {
-        setIsPremium(true);
-        return;
+      // Test-mode shortcuts ONLY in dev — never trust email content in prod.
+      if (import.meta.env.DEV) {
+        if (email === 'pro@invoicy.test' || email === 'premium@invoicy.test' || email?.endsWith('+pro@invoicy.test')) {
+          setIsPremium(true);
+          return;
+        }
+        if (email === 'free@invoicy.test' || email?.endsWith('+free@invoicy.test')) {
+          setIsPremium(false);
+          return;
+        }
       }
 
-      if (email === 'free@invoicy.test' || email?.includes('+free')) {
-        setIsPremium(false);
-        return;
-      }
+      // Reset to false while fetching to prevent stale premium leaks across user switches.
+      setIsPremium(false);
 
-      // Fetch user profile from Supabase
       const fetchProfile = async () => {
         const { data, error } = await supabase
           .from('profiles')

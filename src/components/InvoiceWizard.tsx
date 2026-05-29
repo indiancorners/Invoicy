@@ -371,7 +371,11 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                                   setShowUpgradeModal(true);
                                   return;
                                }
-                               navigator.clipboard.writeText(window.location.origin + `/preview/${data.id}`);
+                               if (!data.publicToken) {
+                                  toast.error("Save the invoice first to generate a share link.");
+                                  return;
+                               }
+                               navigator.clipboard.writeText(`${window.location.origin}/preview/${data.id}?t=${data.publicToken}`);
                                toast.success("Invoice link copied to clipboard!");
                             }}
                             className="w-full flex items-center justify-between p-5 bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl hover:border-[#AEAEB2] hover:bg-white transition-all active:scale-[0.98]"

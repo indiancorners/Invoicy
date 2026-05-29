@@ -16,6 +16,15 @@ CREATE TABLE invoices (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- 3. Processed Webhooks (idempotency ledger for Lemon Squeezy)
+-- Server-side only — written via service-role key. Prevents double-processing
+-- of webhook retries.
+CREATE TABLE IF NOT EXISTS processed_webhooks (
+  id TEXT PRIMARY KEY,
+  event_name TEXT NOT NULL,
+  processed_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Optional: Enable Row Level Security (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { InvoiceData, InvoiceItem } from '../types';
+import { InvoiceData, InvoiceItem, newInvoiceId } from '../types';
 import { Plus, Trash2, FileText, User, MapPin, Mail, Hash, Percent, Phone, Upload } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -133,7 +133,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
 
   const addItem = () => {
     const newItem: InvoiceItem = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: newInvoiceId(),
       description: '',
       quantity: 1,
       price: 0,

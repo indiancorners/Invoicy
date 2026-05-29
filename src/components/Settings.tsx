@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Globe, Shield, Save, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, Globe, Shield, Save, CheckCircle2, Upload, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Settings: React.FC = () => {
@@ -13,7 +13,8 @@ export const Settings: React.FC = () => {
         phone: '+1 (555) 000-0000',
         address: '123 Business Ave, Suite 100\nNew York, NY 10001',
         gst: '',
-        currency: '$'
+        currency: '$',
+        logo: ''
       };
     } catch (e) {
       return {
@@ -22,13 +23,23 @@ export const Settings: React.FC = () => {
         phone: '+1 (555) 000-0000',
         address: '123 Business Ave, Suite 100\nNew York, NY 10001',
         gst: '',
-        currency: '$'
+        currency: '$',
+        logo: ''
       };
     }
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [savedStatus, setSavedStatus] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setProfile({ ...profile, logo: reader.result as string });
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +115,47 @@ export const Settings: React.FC = () => {
                 Edit Profile
               </button>
             )}
+          </div>
+
+          <div className="mb-8 pb-8 border-b border-[#D2D2D7]">
+            <label className={labelClass}>Business Logo</label>
+            <div className="flex items-center gap-5">
+              <div className="w-24 h-24 rounded-xl border border-[#D2D2D7] bg-[#F5F5F7] flex items-center justify-center overflow-hidden shrink-0">
+                {profile.logo ? (
+                  <img src={profile.logo} alt="Business logo" className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-[11px] font-medium text-[#86868B]">No logo</span>
+                )}
+              </div>
+              {isEditing && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="rounded-full border border-[#D2D2D7] bg-[#F5F5F7] text-[#1D1D1F] px-5 py-2 text-[13px] font-medium hover:opacity-80 transition-all flex items-center gap-2 w-fit"
+                  >
+                    <Upload size={14} /> {profile.logo ? 'Replace Logo' : 'Upload Logo'}
+                  </button>
+                  {profile.logo && (
+                    <button
+                      type="button"
+                      onClick={() => setProfile({ ...profile, logo: '' })}
+                      className="rounded-full border border-[#DC2626]/30 bg-[#FEF2F2] text-[#DC2626] px-5 py-2 text-[13px] font-medium hover:opacity-80 transition-all flex items-center gap-2 w-fit"
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  )}
+                  <p className="text-[11px] text-[#86868B] mt-0.5">PNG or JPG. Used as the default on new invoices.</p>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                ref={logoInputRef}
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

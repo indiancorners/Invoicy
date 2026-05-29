@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { InvoiceData, InvoiceStatus } from '../types';
-import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, ArrowUpRight, Zap, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Clock, CheckCircle2, Calendar, ArrowUpRight, Zap, AlertCircle, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn, exportToPDF } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,6 +19,8 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: 'Cancelled',
 };
 
+const ALL_STATUSES: InvoiceStatus[] = ['draft', 'sent', 'viewed', 'partially_paid', 'paid', 'overdue', 'cancelled'];
+
 // InvoicePreview renders an outer <div id="invoice-capture"> — target that
 // directly when triggering a Dashboard download.
 const CAPTURE_ID = 'invoice-capture';
@@ -26,12 +28,13 @@ const CAPTURE_ID = 'invoice-capture';
 interface DashboardProps {
   invoices: InvoiceData[];
   onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: InvoiceStatus) => void;
   isLoading: boolean;
   fetchError?: string | null;
   onRetryFetch?: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoading, fetchError, onRetryFetch }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStatusChange, isLoading, fetchError, onRetryFetch }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
@@ -342,7 +345,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                       <p className="font-bold text-base tracking-tighter">{inv.currency}{calculateTotal(inv).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </td>
                     <td className="px-10 py-6">
-                      <StatusBadge status={inv.status} />
+                      <StatusSelect status={inv.status} onChange={(s) => onStatusChange(inv.id, s)} />
                     </td>
                     <td className="px-10 py-6">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
@@ -376,7 +379,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, isLoad
                          <h4 className="font-bold text-lg leading-none text-foreground uppercase">{inv.receiver?.name}</h4>
                        </div>
                     </div>
-                    <StatusBadge status={inv.status} />
+                    <StatusSelect status={inv.status} onChange={(s) => onStatusChange(inv.id, s)} />
                   </div>
 
                   <div className="flex items-center justify-between text-xs font-medium text-foreground/80 bg-subtle p-5 rounded-xl border border-border">
@@ -505,6 +508,62 @@ const StatusBadge = ({ status }: { status: string }) => {
     )}>
       {STATUS_LABELS[status] ?? status}
     </span>
+  );
+};
+
+// Interactive status pill — click to open a menu and change the invoice state.
+const StatusSelect = ({ status, onChange }: { status: InvoiceStatus; onChange: (s: InvoiceStatus) => void }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        className="inline-flex items-center gap-1 rounded-full hover:opacity-80 transition-all focus:outline-none focus:ring-2 focus:ring-accent/30"
+        title="Change status"
+      >
+        <StatusBadge status={status} />
+        <ChevronDown size={12} className="text-placeholder" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="absolute z-50 mt-2 left-0 w-44 bg-white border border-[#D2D2D7] rounded-xl shadow-xl overflow-hidden p-1"
+          >
+            {ALL_STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChange(s); setOpen(false); }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-colors",
+                  s === status ? "bg-subtle text-foreground" : "text-muted hover:bg-subtle hover:text-foreground"
+                )}
+              >
+                <span className="w-3 flex justify-center shrink-0">
+                  {s === status && <CheckCircle2 size={11} className="text-success" />}
+                </span>
+                {STATUS_LABELS[s]}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

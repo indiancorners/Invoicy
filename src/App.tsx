@@ -22,7 +22,7 @@ import { LegalPage } from './components/Legal';
 import { PreviewPage } from './components/PreviewPage';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
-import { DEFAULT_INVOICE, InvoiceData, newPublicToken } from './types';
+import { DEFAULT_INVOICE, InvoiceData, InvoiceStatus, newPublicToken } from './types';
 import { fetchInvoices, saveInvoice, deleteInvoice } from './lib/invoiceService';
 import { useInvoicyPro } from './hooks/useInvoicyPro';
 
@@ -95,6 +95,23 @@ function AppContent() {
     }
   };
 
+  const handleUpdateStatus = async (id: string, status: InvoiceStatus) => {
+    if (!userId) return;
+    const target = invoices.find(i => i.id === id);
+    if (!target || target.status === status) return;
+    const updated = { ...target, status, lastModified: Date.now() };
+    // Optimistic update; revert if the persist fails.
+    setInvoices(prev => prev.map(i => i.id === id ? updated : i));
+    try {
+      await saveInvoice(updated, userId);
+      toast.success(`Marked as ${status.replace('_', ' ')}.`);
+    } catch (e) {
+      console.error("Failed to update invoice status:", e);
+      toast.error('Failed to update status. Please try again.');
+      setInvoices(prev => prev.map(i => i.id === id ? target : i));
+    }
+  };
+
   const handleDeleteInvoice = async (id: string) => {
     if (!userId) return;
     try {
@@ -164,7 +181,7 @@ function AppContent() {
         {/* Protected Routes */}
         <Route element={<AuthGuard />}>
           <Route element={<AppLayout />}>
-            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} isLoading={isLoading} fetchError={fetchError} onRetryFetch={loadInvoices} />} />
+            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} onStatusChange={handleUpdateStatus} isLoading={isLoading} fetchError={fetchError} onRetryFetch={loadInvoices} />} />
             <Route path="/app/create" element={<InvoiceWizard initialData={DEFAULT_INVOICE()} onSave={handleSaveInvoice} />} />
             <Route path="/app/edit/:id" element={<EditRoute />} />
             <Route path="/app/settings" element={<Settings />} />

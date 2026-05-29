@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { InvoiceData, ThemeType } from '../types';
-import { LayoutGrid, Type, Cpu, Sparkles, Moon, ArrowRight, ArrowLeft, Check, Lock, Activity, Loader2, Star } from 'lucide-react';
+import { LayoutGrid, Type, Cpu, Sparkles, Moon, ArrowRight, ArrowLeft, Check, Lock, Activity, Loader2, Star, AlertTriangle, X } from 'lucide-react';
 import { cn, exportToPDF, exportToPNG } from '../lib/utils';
 import { toast } from 'sonner';
 import { InvoiceForm } from './InvoiceForm';
@@ -43,7 +43,31 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
   const handleNext = () => setStep(s => Math.min(s + 1, 3));
   const handleBack = () => setStep(s => Math.max(s - 1, 1));
 
+  // Real field validation for Step 3 (replaces the previously hardcoded "Ready").
+  const validation = useMemo(() => {
+    const emailOk = (e?: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((e || '').trim());
+    const items = data.items ?? [];
+    const hasValidItem = items.some(
+      (i) => (i.description || '').trim() !== '' && (i.quantity ?? 0) > 0 && (i.price ?? 0) >= 0
+    );
+    const datesOk =
+      !!data.date && !!data.dueDate &&
+      new Date(data.dueDate).getTime() >= new Date(data.date).getTime();
+    const checks = [
+      { label: 'Sender name', ok: (data.sender?.name || '').trim() !== '' },
+      { label: 'Sender email', ok: emailOk(data.sender?.email) },
+      { label: 'Client name', ok: (data.receiver?.name || '').trim() !== '' },
+      { label: 'Client email', ok: emailOk(data.receiver?.email) },
+      { label: 'At least one valid line item', ok: hasValidItem },
+      { label: 'Due date on or after issue date', ok: datesOk },
+    ];
+    return { checks, isValid: checks.every((c) => c.ok) };
+  }, [data]);
+
   const handleFinalSave = () => {
+    if (!validation.isValid) {
+      toast.warning('Some details are incomplete — saving as a draft. Resolve the checklist before sending.');
+    }
     onSave(data);
     navigate('/app');
   };
@@ -416,13 +440,40 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                       </div>
                    )}
 
-                   <div className="p-6 bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl flex items-start gap-4">
-                      <div className="bg-[#DCFCE7] p-2 rounded-full mt-0.5">
-                        <Check size={18} className="text-[#16A34A]" />
+                   <div className={cn(
+                     "p-6 rounded-2xl border flex items-start gap-4",
+                     validation.isValid ? "bg-[#F0FDF4] border-[#BBF7D0]" : "bg-[#FFFBEB] border-[#FDE68A]"
+                   )}>
+                      <div className={cn("p-2 rounded-full mt-0.5", validation.isValid ? "bg-[#DCFCE7]" : "bg-[#FEF3C7]")}>
+                        {validation.isValid
+                          ? <Check size={18} className="text-[#16A34A]" />
+                          : <AlertTriangle size={18} className="text-[#D97706]" />}
                       </div>
-                      <div>
-                         <h5 className="text-[11px] text-[#16A34A] font-semibold uppercase tracking-widest mb-1">Validation Status: Ready</h5>
-                         <p className="text-[12px] text-[#15803D]/70 leading-relaxed">All invoice fields verified. Your export is ready for delivery.</p>
+                      <div className="flex-grow">
+                         <h5 className={cn(
+                           "text-[11px] font-semibold uppercase tracking-widest mb-1",
+                           validation.isValid ? "text-[#16A34A]" : "text-[#D97706]"
+                         )}>
+                           {validation.isValid ? "Validation Status: Ready" : "Validation Status: Incomplete"}
+                         </h5>
+                         <p className={cn(
+                           "text-[12px] leading-relaxed mb-3",
+                           validation.isValid ? "text-[#15803D]/70" : "text-[#92400E]/80"
+                         )}>
+                           {validation.isValid
+                             ? "All invoice fields verified. Your export is ready for delivery."
+                             : "Some details need attention. You can still save as a draft, but resolve these before sending."}
+                         </p>
+                         <ul className="space-y-1.5">
+                           {validation.checks.map((c) => (
+                             <li key={c.label} className="flex items-center gap-2 text-[12px]">
+                               {c.ok
+                                 ? <Check size={13} className="text-[#16A34A] shrink-0" />
+                                 : <X size={13} className="text-[#D97706] shrink-0" />}
+                               <span className={c.ok ? "text-[#15803D]" : "text-[#92400E] font-medium"}>{c.label}</span>
+                             </li>
+                           ))}
+                         </ul>
                       </div>
                    </div>
                 </motion.div>

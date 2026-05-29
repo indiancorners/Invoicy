@@ -5,7 +5,7 @@ import { ArrowRight, Check, Eye, Layers, Lock, Star, ChevronDown, FileText, Down
 import { cn } from '../lib/utils';
 import { BrandLogo } from './BrandLogo';
 import { useAuth } from '@clerk/clerk-react';
-import aboutImage from '../assets/images/regenerated_image_1778571099227.png';
+import aboutImage from '../assets/images/homebanner.png';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -23,10 +23,6 @@ export const LandingPage: React.FC = () => {
   const { isSignedIn } = useAuth();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    console.log("Studio Landing Page Initialized");
-  }, []);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 24);
@@ -369,14 +365,12 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
           <div className="flex-1 w-full lg:w-1/2 flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-lg aspect-square lg:aspect-[4/5] rounded-[2rem] overflow-hidden border-[12px] border-[#F5F5F7] shadow-2xl">
-              <img
-                src={aboutImage}
-                alt="Modern office"
-                className="w-full h-full object-cover object-center"
-                referrerPolicy="no-referrer"
-              />
-            </div>
+            <img
+              src={aboutImage}
+              alt="Modern office"
+              className="w-full max-w-lg h-auto"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
       </section>

@@ -11,6 +11,7 @@ export interface InvoiceItem {
 
 export interface InvoiceData {
   id: string;
+  publicToken: string;
   number: string;
   date: string;
   dueDate: string;
@@ -40,7 +41,21 @@ export interface InvoiceData {
   signature?: string;
 }
 
-export const DEFAULT_INVOICE = (id: string = Math.random().toString(36).substr(2, 9)): InvoiceData => {
+// Browser-safe ID generator. Falls back to a random hex string if randomUUID
+// isn't available (older Safari, non-secure context).
+const newId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  (crypto?.getRandomValues ?? ((b: Uint8Array) => b.forEach((_, i) => (b[i] = Math.floor(Math.random() * 256)))))(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+};
+
+export const newInvoiceId = newId;
+export const newPublicToken = newId;
+
+export const DEFAULT_INVOICE = (id: string = newId()): InvoiceData => {
   let profile = null;
   try {
     const savedProfile = localStorage.getItem('invoicy_business_profile');
@@ -48,9 +63,10 @@ export const DEFAULT_INVOICE = (id: string = Math.random().toString(36).substr(2
   } catch (e) {
     console.error("Failed to parse business profile", e);
   }
-  
+
   return {
     id,
+    publicToken: newPublicToken(),
     number: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
     date: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

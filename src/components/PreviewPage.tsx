@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { FileDown, ImageDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { InvoiceData } from '../types';
@@ -12,34 +12,37 @@ type FetchState = 'loading' | 'found' | 'not-found';
 
 export const PreviewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('t');
   const [fetchState, setFetchState] = useState<FetchState>('loading');
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    if (!id) {
+    // Require both id and token. Without the token, we don't even hit Supabase
+    // — prevents enumeration of invoice IDs from the network panel.
+    if (!id || !token) {
       setFetchState('not-found');
       return;
     }
 
     const fetchInvoice = async () => {
       try {
-        const { data, error } = await supabase
-          .from('invoices')
-          .select('content')
-          .eq('id', id)
-          .single();
+        // SECURITY DEFINER RPC: returns the invoice content only when both the
+        // id and the secret publicToken match. Runs under RLS-bypassing
+        // privileges but is safe because the token gate is enforced in SQL —
+        // anonymous visitors can't enumerate or read invoices any other way.
+        const { data, error } = await supabase.rpc('get_public_invoice', {
+          p_id: id,
+          p_token: token,
+        });
 
-        if (error || !data) {
+        const content = data as any;
+        if (error || !content || typeof content !== 'object' || !('id' in content) || !('items' in content)) {
           setFetchState('not-found');
           return;
         }
 
-        const content = data.content;
-        if (!content || typeof content !== 'object' || !('id' in content) || !('items' in content)) {
-          setFetchState('not-found');
-          return;
-        }
         setInvoice(content as InvoiceData);
         setFetchState('found');
       } catch {
@@ -48,7 +51,7 @@ export const PreviewPage: React.FC = () => {
     };
 
     fetchInvoice();
-  }, [id]);
+  }, [id, token]);
 
   const handleExportPDF = async () => {
     if (!invoice || isExporting) return;

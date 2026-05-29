@@ -22,11 +22,13 @@ import { LegalPage } from './components/Legal';
 import { PreviewPage } from './components/PreviewPage';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
-import { DEFAULT_INVOICE, InvoiceData } from './types';
+import { DEFAULT_INVOICE, InvoiceData, InvoiceStatus, newPublicToken } from './types';
 import { fetchInvoices, saveInvoice, deleteInvoice } from './lib/invoiceService';
+import { useInvoicyPro } from './hooks/useInvoicyPro';
 
 function AppContent() {
   const { isSignedIn, userId, isLoaded } = useAuth();
+  const pro = useInvoicyPro();
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -58,20 +60,55 @@ function AppContent() {
 
   const handleSaveInvoice = async (data: InvoiceData) => {
     if (!userId) return;
+
+    // Re-check free-tier limit on save — Dashboard's "New Invoice" button gate
+    // can be bypassed by deep-linking to /app/create. Existing invoices (edits)
+    // are always allowed.
+    const isEdit = invoices.some(i => i.id === data.id);
+    if (!isEdit && pro.isLimitReached(invoices.length)) {
+      toast.error('Free plan limit reached. Upgrade to create more invoices.');
+      navigate('/app');
+      return;
+    }
+
+    // Backfill publicToken on legacy invoices saved before share-link tokens
+    // were introduced. New invoices get one in DEFAULT_INVOICE.
+    const stamped = {
+      ...data,
+      publicToken: data.publicToken || newPublicToken(),
+      lastModified: Date.now(),
+    };
     try {
-      await saveInvoice(data, userId);
+      await saveInvoice(stamped, userId);
       setInvoices(prev => {
-        const exists = prev.find(i => i.id === data.id);
+        const exists = prev.find(i => i.id === stamped.id);
         if (exists) {
-          return prev.map(i => i.id === data.id ? { ...data, lastModified: Date.now() } : i);
+          return prev.map(i => i.id === stamped.id ? stamped : i);
         }
-        return [...prev, { ...data, lastModified: Date.now() }];
+        return [...prev, stamped];
       });
       toast.success('Invoice saved.');
       navigate('/app');
     } catch (e) {
       console.error("Failed to save invoice:", e);
       toast.error('Failed to save invoice. Please try again.');
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: InvoiceStatus) => {
+    if (!userId) return;
+    const target = invoices.find(i => i.id === id);
+    if (!target || target.status === status) return;
+    const updated = { ...target, status, lastModified: Date.now() };
+    // Optimistic update; revert if the persist fails.
+    setInvoices(prev => prev.map(i => i.id === id ? updated : i));
+    try {
+      await saveInvoice(updated, userId);
+      toast.success(`Marked as ${status.replace('_', ' ')}.`);
+    } catch (e) {
+      console.error("Failed to update invoice status:", e);
+      toast.error('Failed to update status. Please try again.');
+      setInvoices(prev => prev.map(i => i.id === id ? target : i));
     }
   };
 
@@ -144,7 +181,7 @@ function AppContent() {
         {/* Protected Routes */}
         <Route element={<AuthGuard />}>
           <Route element={<AppLayout />}>
-            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} isLoading={isLoading} fetchError={fetchError} onRetryFetch={loadInvoices} />} />
+            <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} onStatusChange={handleUpdateStatus} isLoading={isLoading} fetchError={fetchError} onRetryFetch={loadInvoices} />} />
             <Route path="/app/create" element={<InvoiceWizard initialData={DEFAULT_INVOICE()} onSave={handleSaveInvoice} />} />
             <Route path="/app/edit/:id" element={<EditRoute />} />
             <Route path="/app/settings" element={<Settings />} />

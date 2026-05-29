@@ -28,28 +28,17 @@ export const PreviewPage: React.FC = () => {
 
     const fetchInvoice = async () => {
       try {
-        const { data, error } = await supabase
-          .from('invoices')
-          .select('content')
-          .eq('id', id)
-          .single();
+        // SECURITY DEFINER RPC: returns the invoice content only when both the
+        // id and the secret publicToken match. Runs under RLS-bypassing
+        // privileges but is safe because the token gate is enforced in SQL —
+        // anonymous visitors can't enumerate or read invoices any other way.
+        const { data, error } = await supabase.rpc('get_public_invoice', {
+          p_id: id,
+          p_token: token,
+        });
 
-        if (error || !data) {
-          setFetchState('not-found');
-          return;
-        }
-
-        const content = data.content;
-        if (!content || typeof content !== 'object' || !('id' in content) || !('items' in content)) {
-          setFetchState('not-found');
-          return;
-        }
-
-        // Token must match exactly. Old invoices created before this fix have
-        // no publicToken and are therefore not shareable until re-saved — by
-        // design, that's the whole point of the gate.
-        const expected = (content as any).publicToken;
-        if (!expected || expected !== token) {
+        const content = data as any;
+        if (error || !content || typeof content !== 'object' || !('id' in content) || !('items' in content)) {
           setFetchState('not-found');
           return;
         }

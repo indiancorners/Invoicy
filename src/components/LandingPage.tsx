@@ -25,10 +25,6 @@ export const LandingPage: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    console.log("Studio Landing Page Initialized");
-  }, []);
-
-  useEffect(() => {
     const h = () => setScrolled(window.scrollY > 24);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);

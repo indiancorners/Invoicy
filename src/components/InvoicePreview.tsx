@@ -7,7 +7,7 @@ interface InvoicePreviewProps {
 
 export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
   const calculations = useMemo(() => {
-    const subtotal = data.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    const subtotal = (data.items ?? []).reduce((sum, item) => sum + (item.quantity ?? 0) * (item.price ?? 0), 0);
     const taxAmount = subtotal * (data.taxRate / 100);
     const total = subtotal + taxAmount;
     return { subtotal, taxAmount, total };

@@ -24,72 +24,87 @@ function toRgb(v: string): string {
   }
 }
 
-// Replace every oklch(...) call inside a CSS text blob with its hex equivalent.
-function rewriteOklchInCss(css: string): string {
-  return css.replace(/oklch\([^)]+\)/g, (m) => toRgb(m));
+// Any CSS Color 4 function html2canvas v1.4.x can't parse. Tailwind v4 emits
+// oklch() for palette colors and color-mix(in oklab, …) for opacity modifiers
+// (e.g. bg-flame/20), so we must catch all of these — not just oklch.
+const UNSUPPORTED_COLOR_RE = /\b(?:oklch|oklab|lch|lab|color-mix|color|hwb)\(/i;
+// A full color-function call, tolerating one level of nested parens so
+// color-mix(in oklab, oklch(…) 50%, transparent) matches as a whole.
+const COLOR_FN_RE = /(?:oklch|oklab|lch|lab|color-mix|color|hwb)\([^()]*(?:\([^()]*\)[^()]*)*\)/gi;
+
+// Convert any unsupported color functions in a CSS value to rgb. Works for both
+// single-color props (color, fill, …) and compound values (gradients, shadows).
+function sanitizeColorValue(v: string): string {
+  if (!v || !UNSUPPORTED_COLOR_RE.test(v)) return v;
+  // Canvas resolves a single color AND color-mix() to rgb in one shot.
+  const whole = toRgb(v);
+  if (whole && !UNSUPPORTED_COLOR_RE.test(whole)) return whole;
+  // Compound value — convert each color-function token individually.
+  return v.replace(COLOR_FN_RE, (m) => {
+    const c = toRgb(m);
+    return c && !UNSUPPORTED_COLOR_RE.test(c) ? c : m;
+  });
 }
 
-// Single-value color props — value is just a color, use toRgb().
-const COLOR_PROPS = [
-  'color', 'background-color',
-  'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
-  'outline-color', 'text-decoration-color', 'caret-color',
-  'fill', 'stroke', 'accent-color', 'column-rule-color',
-];
-
-// Multi-token props — value contains a color among other tokens (offsets,
-// gradients, etc). Must use rewriteOklchInCss to preserve the rest of the value.
-const COMPOUND_PROPS = ['background-image', 'box-shadow', 'text-shadow'];
-
-function patchOklch(doc: Document, root: HTMLElement) {
-  const win = doc.defaultView ?? window;
-
-  // 1) Inline computed style on every node — primary case for class-based colors.
+// Inline-override EVERY computed property whose value carries an unsupported
+// color function, baking the rgb equivalent into the element's style attribute.
+// MUST run against a fully-styled element (live document) — see captureCanvas.
+function inlineSanitizeColors(root: HTMLElement, win: Window) {
   [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))].forEach((el) => {
     if (!el.style) return;
     const cs = win.getComputedStyle(el);
-    COLOR_PROPS.forEach((p) => {
-      const v = cs.getPropertyValue(p);
-      if (v && v.includes('oklch')) el.style.setProperty(p, toRgb(v));
-    });
-    COMPOUND_PROPS.forEach((p) => {
-      const v = cs.getPropertyValue(p);
-      if (v && v.includes('oklch')) el.style.setProperty(p, rewriteOklchInCss(v));
-    });
+    for (let i = 0; i < cs.length; i++) {
+      const name = cs.item(i);
+      const value = cs.getPropertyValue(name);
+      if (value && UNSUPPORTED_COLOR_RE.test(value)) {
+        const fixed = sanitizeColorValue(value);
+        if (fixed !== value) {
+          try { el.style.setProperty(name, fixed, cs.getPropertyPriority(name)); } catch { /* read-only */ }
+        }
+      }
+    }
   });
+}
 
-  // 2) Stylesheet rules — Tailwind v4 emits CSS custom properties on :root
-  //    that resolve to oklch. Rewrite any rule that contains oklch so the
-  //    cloned document never exposes a raw oklch token to html2canvas.
-  Array.from(doc.styleSheets).forEach((sheet) => {
-    let rules: CSSRuleList | null = null;
-    try { rules = sheet.cssRules; } catch { return; /* CORS — skip */ }
-    if (!rules) return;
+// Rewrite stylesheet rules in the cloned doc — backstop for anything inline
+// styles can't reach (::before/::after pseudo-elements, custom-property vars).
+// Recurses into @layer/@media/@supports groups where Tailwind v4 nests rules.
+function rewriteStylesheetColors(doc: Document) {
+  const overrides: string[] = [];
+  const seen = new Set<string>();
+  const visit = (rules: CSSRuleList) => {
     Array.from(rules).forEach((rule) => {
       const styleRule = rule as CSSStyleRule;
-      if (!styleRule.style) return;
-      if (!styleRule.cssText.includes('oklch')) return;
-      try {
+      if (styleRule.style && UNSUPPORTED_COLOR_RE.test(styleRule.cssText)) {
         for (let i = 0; i < styleRule.style.length; i++) {
           const name = styleRule.style.item(i);
           const value = styleRule.style.getPropertyValue(name);
-          if (value && value.includes('oklch')) {
-            styleRule.style.setProperty(
-              name,
-              rewriteOklchInCss(value),
-              styleRule.style.getPropertyPriority(name)
-            );
+          if (!value || !UNSUPPORTED_COLOR_RE.test(value)) continue;
+          const fixed = sanitizeColorValue(value);
+          if (fixed === value) continue;
+          // Custom properties: collect into a high-priority :root override so
+          // var() references everywhere (incl. pseudo-elements) resolve to rgb.
+          if (name.startsWith('--')) {
+            if (!seen.has(name)) { overrides.push(`${name}:${fixed}`); seen.add(name); }
+          } else {
+            try { styleRule.style.setProperty(name, fixed, styleRule.style.getPropertyPriority(name)); } catch { /* ignore */ }
           }
         }
-      } catch {
-        // Fallback: inject a fresh <style> with the rewritten rule so it
-        // wins over the original via cascade order.
-        const style = doc.createElement('style');
-        style.textContent = rewriteOklchInCss(styleRule.cssText);
-        doc.head.appendChild(style);
       }
+      const grouping = (rule as CSSGroupingRule).cssRules;
+      if (grouping) visit(grouping);
     });
+  };
+  Array.from(doc.styleSheets).forEach((sheet) => {
+    let rules: CSSRuleList | null = null;
+    try { rules = sheet.cssRules; } catch { return; /* CORS — skip */ }
+    if (rules) visit(rules);
   });
+  if (overrides.length) {
+    const style = doc.createElement('style');
+    style.textContent = `:root,:host{${overrides.join(';')}}`;
+    doc.head.appendChild(style);
+  }
 }
 
 function patchMisc(root: HTMLElement) {
@@ -155,6 +170,15 @@ async function captureCanvas(elementId: string): Promise<HTMLCanvasElement> {
   try {
     await waitForRender();
 
+    // CRITICAL: sanitize colors on the LIVE, fully-styled clone BEFORE
+    // html2canvas runs. Doing it only in onclone is unreliable — the cloned
+    // iframe's stylesheets may not be applied when onclone fires, so
+    // getComputedStyle returns initial (non-oklch) values and the patch finds
+    // nothing to fix; html2canvas then applies styles, reads oklch, and throws.
+    // Inlining rgb here bakes it into the style attribute, which html2canvas
+    // reads regardless of timing.
+    inlineSanitizeColors(clone, window);
+
     return await html2canvas(clone, {
       scale: 2,
       useCORS: true,
@@ -163,7 +187,10 @@ async function captureCanvas(elementId: string): Promise<HTMLCanvasElement> {
       windowWidth: 794,
       logging: false,
       onclone: (doc, el) => {
-        patchOklch(doc, el);
+        // Backstop: re-run inline sanitization, plus rewrite stylesheet rules /
+        // custom-property vars for anything inline styles can't reach.
+        inlineSanitizeColors(el, doc.defaultView ?? window);
+        rewriteStylesheetColors(doc);
         patchMisc(el);
       },
     });

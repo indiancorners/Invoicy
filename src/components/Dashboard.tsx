@@ -307,7 +307,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
               </div>
             </div>
             <div className="hidden xl:inline-flex text-[9px] items-center font-bold text-placeholder uppercase tracking-[0.2em] bg-subtle px-5 py-2.5 rounded-full border border-border shrink-0">
-              {filteredInvoices.length} RECORDED ASSETS
+              {filteredInvoices.length} {filteredInvoices.length === 1 ? 'Invoice' : 'Invoices'}
             </div>
           </div>
 
@@ -317,10 +317,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
               <thead>
                 <tr className="bg-subtle text-[11px] font-semibold uppercase tracking-widest text-placeholder border-b border-[#D2D2D7]">
                   <th className="px-10 py-6">Invoice</th>
-                  <th className="px-10 py-6">Client Entity</th>
-                  <th className="px-10 py-6 text-right">Net Value</th>
-                  <th className="px-10 py-6">State</th>
-                  <th className="px-10 py-6 text-right">Operations</th>
+                  <th className="px-10 py-6">Client</th>
+                  <th className="px-10 py-6 text-right">Amount</th>
+                  <th className="px-10 py-6">Status</th>
+                  <th className="px-10 py-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#D2D2D7]">
@@ -348,7 +348,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
                       <StatusSelect status={inv.status} onChange={(s) => onStatusChange(inv.id, s)} />
                     </td>
                     <td className="px-10 py-6">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300">
                          <ActionButtons invoice={inv} setDeleteConfirmId={setDeleteConfirmId} navigate={navigate} isPro={pro.isPremium} onProLimited={() => setShowUpgradeModal(true)} onDownload={handleDownload} isDownloading={downloadingId === inv.id} />
                       </div>
                     </td>
@@ -463,9 +463,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
               <div className="w-16 h-16 bg-danger/10 text-danger rounded-2xl flex items-center justify-center mb-6">
                 <Trash2 size={32} />
               </div>
-              <h3 className="text-2xl font-bold tracking-tighter uppercase mb-2">Confirm Removal</h3>
+              <h3 className="text-2xl font-bold tracking-tighter uppercase mb-2">Delete Invoice?</h3>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted leading-relaxed mb-8">
-                This asset will be permanently expunged from your vault. This action cannot be reversed.
+                This invoice will be permanently deleted. This action cannot be undone.
               </p>
               <div className="flex flex-col gap-3">
                 <button
@@ -477,13 +477,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
                   }}
                   className="w-full rounded-full bg-danger text-white py-4 font-bold text-[10px] uppercase tracking-widest hover:opacity-80 transition-all active:scale-95"
                 >
-                  Confirm Expungement
+                  Yes, Delete Invoice
                 </button>
                 <button
                   onClick={() => setDeleteConfirmId(null)}
                   className="w-full rounded-full bg-subtle text-foreground py-4 font-bold text-[10px] uppercase tracking-widest hover:opacity-80 transition-all active:scale-95"
                 >
-                  Retain Record
+                  Cancel
                 </button>
               </div>
             </motion.div>
@@ -610,8 +610,9 @@ const ActionButtons = ({ invoice, setDeleteConfirmId, navigate, isPro, onProLimi
             toast.error('This invoice was created before share links — open and re-save it to enable sharing.');
             return;
           }
-          navigator.clipboard.writeText(`${window.location.origin}/preview/${invoice.id}?t=${invoice.publicToken}`);
-          toast.success('Link copied to clipboard!');
+          navigator.clipboard.writeText(`${window.location.origin}/preview/${invoice.id}?t=${invoice.publicToken}`)
+            .then(() => toast.success('Link copied to clipboard!'))
+            .catch(() => toast.error('Copy failed — please copy the URL manually.'));
         }}
       >
         <Share2 size={16} />

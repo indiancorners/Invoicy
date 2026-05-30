@@ -24,7 +24,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   reason,
 }) => {
   const headline =
-    reason === 'pro-theme' ? 'Unlock Pro Themes' : 'Upgrade to Pro';
+    reason === 'pro-theme' ? 'Unlock Studio Pro' : 'Unlock Studio Pro';
 
   const handleUpgrade = () => {
     onUpgrade();
@@ -88,7 +88,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
               onClick={handleUpgrade}
               className="w-full rounded-full bg-accent text-white font-bold text-[13px] py-4 hover:opacity-80 transition-all active:scale-95 mb-3"
             >
-              Get Lifetime Access / $20
+              Get Studio Pro — $20
             </button>
 
             {/* Secondary */}
@@ -96,7 +96,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
               onClick={onClose}
               className="w-full text-[13px] font-medium text-muted hover:text-foreground transition-colors py-2"
             >
-              Maybe later
+              Not right now
             </button>
           </motion.div>
         </div>

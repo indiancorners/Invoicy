@@ -111,13 +111,13 @@ export const AppLayout: React.FC = () => {
                      <div className="flex items-center gap-2 mb-3 w-full">
                         <Star size={16} className={cn("text-accent", pro.isPremium && "fill-accent")} />
                         <span className="text-[9px] font-bold uppercase tracking-widest text-accent">
-                          {pro.isPremium ? "Pro Active" : "Professional Studio"}
+                          {pro.isPremium ? "Studio Pro" : "Studio Pro"}
                         </span>
                      </div>
                      <h4 className="text-[13px] font-bold text-white mb-4 leading-tight">
                         {pro.isPremium
-                          ? "You have lifetime access to all studio assets."
-                          : `Only ${pro.freeLimit} invoice limit. Unlock Unlimited Access.`}
+                          ? "All themes, exports, and share links unlocked — for life."
+                          : `Free plan includes ${pro.freeLimit} invoice. Upgrade for unlimited.`}
                      </h4>
                      {!pro.isPremium && (
                        <div className="mb-4 bg-white/5 rounded-lg p-3 border border-white/5">
@@ -132,11 +132,11 @@ export const AppLayout: React.FC = () => {
                           onClick={() => pro.activatePro()}
                           className="w-full rounded-full bg-accent text-white py-3 text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:opacity-80 active:scale-95"
                         >
-                           Get Lifetime Access <Zap size={14} className="fill-current" />
+                           Get Studio Pro — $20 <Zap size={14} className="fill-current" />
                         </button>
                      ) : (
                         <div className="text-[9px] font-bold text-success bg-success/10 py-3 rounded-xl uppercase tracking-widest text-center border border-success/20 w-full">
-                           Elite Membership
+                           Studio Pro — Active
                         </div>
                      )}
                    </>

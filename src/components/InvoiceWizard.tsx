@@ -399,8 +399,9 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                                   toast.error("Save the invoice first to generate a share link.");
                                   return;
                                }
-                               navigator.clipboard.writeText(`${window.location.origin}/preview/${data.id}?t=${data.publicToken}`);
-                               toast.success("Invoice link copied to clipboard!");
+                               navigator.clipboard.writeText(`${window.location.origin}/preview/${data.id}?t=${data.publicToken}`)
+                                 .then(() => toast.success("Invoice link copied to clipboard!"))
+                                 .catch(() => toast.error('Copy failed — please copy the URL manually.'));
                             }}
                             className="w-full flex items-center justify-between p-5 bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl hover:border-[#AEAEB2] hover:bg-white transition-all active:scale-[0.98]"
                          >
@@ -426,7 +427,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                       <div className="p-8 bg-[#1D1D1F] text-white rounded-2xl border border-white/10 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
                         <h4 className="text-[14px] font-semibold mb-3 flex items-center gap-2">
-                           <Star size={16} className="text-[#2563EB] fill-[#2563EB]" /> Upgrade to Pro Unlimited
+                           <Star size={16} className="text-[#2563EB] fill-[#2563EB]" /> Unlock Studio Pro
                         </h4>
                         <p className="text-[13px] text-white/60 mb-6 leading-relaxed">
                            Unlock all 5 studio-grade themes, unlimited high-fidelity exports, and shareable invoice links.
@@ -435,7 +436,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                            onClick={() => { setUpgradeReason('invoice-limit'); setShowUpgradeModal(true); }}
                            className="w-full rounded-full bg-[#2563EB] text-white font-semibold text-[15px] h-12 px-7 hover:opacity-80 transition-all active:scale-95"
                         >
-                           Activate Pro / $20
+                           Get Studio Pro — $20
                         </button>
                       </div>
                    )}

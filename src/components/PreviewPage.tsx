@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { InvoiceData } from '../types';
 import { supabase } from '../lib/supabaseClient';
 import { cn, exportToPDF, exportToPNG } from '../lib/utils';
+import { Toaster } from 'sonner';
 import { BrandLogo } from './BrandLogo';
 import { InvoicePreview } from './InvoicePreview';
 
@@ -81,6 +82,7 @@ export const PreviewPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-base flex flex-col">
+      <Toaster position="top-center" richColors />
       {/* Header */}
       <header className="w-full border-b border-border bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -96,3 +96,28 @@ Defined in the CSS/config — use these names in class names:
 - `cn()` in `src/lib/utils.ts` — `clsx` + `tailwind-merge`
 - `DEFAULT_INVOICE()` in `src/types.ts` — generates a new invoice pre-filled from `localStorage` key `invoicy_business_profile`
 - Logo upload in `InvoiceForm.tsx` — base64-encoded via `FileReader`, stored inline in `InvoiceData.sender.logo`
+
+## Gotchas & Hard-Won Learnings
+
+Read this before touching export, auth, or deployment — these cost real time to discover.
+
+### Export / OKLCH (the big one)
+- `html2canvas` (v1.4.x) supports **only** `rgb/rgba/hsl/hsla`. It throws `Attempting to parse an unsupported color function "oklch"` on anything else. Verified in its source: `node_modules/html2canvas/dist/html2canvas.esm.js` (~line 1720); it reads colors via `getComputedStyle` on elements **and** `:before`/`:after`.
+- Tailwind v4 emits its **default palette** (`--color-slate-900`, `red`, `blue`, `gray`, `indigo`, …) as `oklch()`, and opacity modifiers as `color-mix(in oklab, …)`. The invoice themes use those, so the built CSS has ~27 oklch values. (The app's own colors — abyssal/flame/etc. — are already hex in `@theme`, `src/index.css`.)
+- **Do NOT fix this at runtime.** Sanitizing in html2canvas `onclone`, walking `getComputedStyle`, the canvas `fillStyle` toRgb trick, `:root` var overrides — all were tried and all failed (onclone fires before the cloned iframe's styles apply, so getComputedStyle returns initial values; there are always leak paths). **Fix at the source: make the built CSS contain zero oklch** (PostCSS oklab→rgb transform, or hex-override the palette in `@theme`, or swap to an oklch-aware capture lib like snapdom/modern-screenshot).
+- **Verify the fix for real:** `npm run build && grep -c oklch dist/assets/*.css` must be `0`, then manually export all five themes.
+
+### Deployment (Vercel)
+- The live URL `invoicy-nine.vercel.app` is served by the project named **`invoicy`** (not `invoicy-nine` — that's a separate stray project). Use `vercel link --project invoicy`, then `vercel --prod`.
+- `VITE_*` vars are **baked at build time**; changing them requires a fresh (uncached) redeploy. Merging to `main` did not reliably auto-deploy.
+- `VITE_SUPABASE_URL` must be the **bare** project URL (`https://<ref>.supabase.co`). Do **not** append `/rest/v1` — supabase-js adds it, and a doubled path yields `PGRST125: Invalid path`.
+- `vercel env pull` shows `""` for "Encrypted" vars (can't decrypt) — it is **not** proof a var is empty.
+- **Verify a deploy by downloading the bundle to a file and grepping the file** (`curl … -o /tmp/b.js; grep marker /tmp/b.js`). Piping a large minified bundle through a shell variable truncates and gives false negatives.
+
+### Auth (Clerk ↔ Supabase)
+- The Supabase client (`src/lib/supabaseClient.ts`) passes the Clerk session token via the `accessToken` callback; Supabase **Third-Party Auth** must register the exact Clerk issuer (decode it from the publishable key, e.g. `https://<sub>.clerk.accounts.dev`). Wrong/missing issuer → `PGRST301: No suitable key`. Token must carry `role: authenticated`.
+- IDs are **TEXT** (Clerk ids like `user_…`, not UUIDs). RLS policies key off `auth.jwt()->>'sub'`. The public `/preview` page reads via the `get_public_invoice(id, token)` SECURITY DEFINER RPC because anonymous visitors have no Clerk token.
+- Two webhook handlers exist: `server.ts` (local dev) and `api/webhooks/lemonsqueezy.ts` (**the one that runs on Vercel**) — keep them in parity.
+
+### Working principle
+When a dependency throws on input, **read its source early** and **eliminate the bad input at its source** rather than iterating runtime patches. Prefer fixes that are cheap to verify. If two attempts at one approach fail, change strategy.

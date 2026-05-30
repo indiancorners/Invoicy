@@ -46,11 +46,10 @@ function sanitizeColorValue(v: string): string {
   });
 }
 
-function patchOklch(doc: Document, root: HTMLElement) {
-  const win = doc.defaultView ?? window;
-
-  // 1) Inline-override EVERY computed property whose value carries an
-  //    unsupported color function — not a fixed list, so nothing slips through.
+// Inline-override EVERY computed property whose value carries an unsupported
+// color function, baking the rgb equivalent into the element's style attribute.
+// MUST run against a fully-styled element (live document) — see captureCanvas.
+function inlineSanitizeColors(root: HTMLElement, win: Window) {
   [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))].forEach((el) => {
     if (!el.style) return;
     const cs = win.getComputedStyle(el);
@@ -65,23 +64,32 @@ function patchOklch(doc: Document, root: HTMLElement) {
       }
     }
   });
+}
 
-  // 2) Rewrite stylesheet rules too — covers ::before/::after and anything
-  //    getComputedStyle on the element itself doesn't expose. Recurse into
-  //    @layer / @media / @supports groups, where Tailwind v4 nests everything.
+// Rewrite stylesheet rules in the cloned doc — backstop for anything inline
+// styles can't reach (::before/::after pseudo-elements, custom-property vars).
+// Recurses into @layer/@media/@supports groups where Tailwind v4 nests rules.
+function rewriteStylesheetColors(doc: Document) {
+  const overrides: string[] = [];
+  const seen = new Set<string>();
   const visit = (rules: CSSRuleList) => {
     Array.from(rules).forEach((rule) => {
       const styleRule = rule as CSSStyleRule;
       if (styleRule.style && UNSUPPORTED_COLOR_RE.test(styleRule.cssText)) {
-        try {
-          for (let i = 0; i < styleRule.style.length; i++) {
-            const name = styleRule.style.item(i);
-            const value = styleRule.style.getPropertyValue(name);
-            if (value && UNSUPPORTED_COLOR_RE.test(value)) {
-              styleRule.style.setProperty(name, sanitizeColorValue(value), styleRule.style.getPropertyPriority(name));
-            }
+        for (let i = 0; i < styleRule.style.length; i++) {
+          const name = styleRule.style.item(i);
+          const value = styleRule.style.getPropertyValue(name);
+          if (!value || !UNSUPPORTED_COLOR_RE.test(value)) continue;
+          const fixed = sanitizeColorValue(value);
+          if (fixed === value) continue;
+          // Custom properties: collect into a high-priority :root override so
+          // var() references everywhere (incl. pseudo-elements) resolve to rgb.
+          if (name.startsWith('--')) {
+            if (!seen.has(name)) { overrides.push(`${name}:${fixed}`); seen.add(name); }
+          } else {
+            try { styleRule.style.setProperty(name, fixed, styleRule.style.getPropertyPriority(name)); } catch { /* ignore */ }
           }
-        } catch { /* ignore individual rule failures */ }
+        }
       }
       const grouping = (rule as CSSGroupingRule).cssRules;
       if (grouping) visit(grouping);
@@ -92,6 +100,11 @@ function patchOklch(doc: Document, root: HTMLElement) {
     try { rules = sheet.cssRules; } catch { return; /* CORS — skip */ }
     if (rules) visit(rules);
   });
+  if (overrides.length) {
+    const style = doc.createElement('style');
+    style.textContent = `:root,:host{${overrides.join(';')}}`;
+    doc.head.appendChild(style);
+  }
 }
 
 function patchMisc(root: HTMLElement) {
@@ -157,6 +170,15 @@ async function captureCanvas(elementId: string): Promise<HTMLCanvasElement> {
   try {
     await waitForRender();
 
+    // CRITICAL: sanitize colors on the LIVE, fully-styled clone BEFORE
+    // html2canvas runs. Doing it only in onclone is unreliable — the cloned
+    // iframe's stylesheets may not be applied when onclone fires, so
+    // getComputedStyle returns initial (non-oklch) values and the patch finds
+    // nothing to fix; html2canvas then applies styles, reads oklch, and throws.
+    // Inlining rgb here bakes it into the style attribute, which html2canvas
+    // reads regardless of timing.
+    inlineSanitizeColors(clone, window);
+
     return await html2canvas(clone, {
       scale: 2,
       useCORS: true,
@@ -165,7 +187,10 @@ async function captureCanvas(elementId: string): Promise<HTMLCanvasElement> {
       windowWidth: 794,
       logging: false,
       onclone: (doc, el) => {
-        patchOklch(doc, el);
+        // Backstop: re-run inline sanitization, plus rewrite stylesheet rules /
+        // custom-property vars for anything inline styles can't reach.
+        inlineSanitizeColors(el, doc.defaultView ?? window);
+        rewriteStylesheetColors(doc);
         patchMisc(el);
       },
     });

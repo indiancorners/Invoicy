@@ -5,7 +5,7 @@ import { ArrowRight, Check, Eye, Layers, Lock, Star, ChevronDown, FileText, Down
 import { cn } from '../lib/utils';
 import { BrandLogo } from './BrandLogo';
 import { useAuth } from '@clerk/clerk-react';
-import aboutImage from '../assets/images/homebanner.png';
+import aboutImage from '../assets/images/homebanner.jpg';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -185,13 +185,22 @@ export const LandingPage: React.FC = () => {
             Dashboard <ArrowRight size={12} />
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all bg-[#1D1D1F] text-white"
-          >
-            Sign In
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all border border-border text-foreground"
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/sign-up')}
+              className="rounded-full h-8 px-4 text-[13px] font-medium hover:opacity-80 transition-all bg-[#1D1D1F] text-white"
+            >
+              Get Started
+            </button>
+          </div>
         )}
       </header>
 
@@ -367,9 +376,10 @@ export const LandingPage: React.FC = () => {
           <div className="flex-1 w-full lg:w-1/2 flex justify-center lg:justify-end">
             <img
               src={aboutImage}
-              alt="Modern office"
+              alt="Studio invoicing preview"
               className="w-full max-w-lg h-auto"
-              referrerPolicy="no-referrer"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
@@ -503,7 +513,13 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate(ctaTarget)}
+                  onClick={() => {
+                    if (isSignedIn) {
+                      navigate('/app');
+                    } else {
+                      navigate(p.pro ? '/sign-up?intent=pro' : '/sign-up');
+                    }
+                  }}
                   className={cn(
                     "w-full h-12 rounded-full font-semibold text-[14px] transition-opacity active:scale-95 hover:opacity-80",
                     p.pro ? 'bg-white text-[#1D1D1F]' : 'bg-[#1D1D1F] text-white'

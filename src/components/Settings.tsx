@@ -309,7 +309,7 @@ export const Settings: React.FC = () => {
                  <button
                    type="button"
                    onClick={() => {
-                     localStorage.removeItem('invoicy_vault');
+                     localStorage.removeItem('invoicy_business_profile');
                      toast.success('Local data cleared. Reloading...');
                      setTimeout(() => window.location.reload(), 800);
                    }}

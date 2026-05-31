@@ -57,9 +57,16 @@ async function startServer() {
           return res.status(400).json({ error: 'Missing meta.event_name' });
         }
 
+        // Require the service role key — the anon key can't write profiles /
+        // processed_webhooks under RLS, so a fallback would silently fail to
+        // grant premium to paying users.
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          console.error('Webhook misconfigured: SUPABASE_SERVICE_ROLE_KEY missing');
+          return res.status(500).json({ error: 'Server misconfigured' });
+        }
         const supabase = createClient(
           process.env.VITE_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY!
+          process.env.SUPABASE_SERVICE_ROLE_KEY
         );
 
         // Idempotency: skip duplicate deliveries. The processed_webhooks table

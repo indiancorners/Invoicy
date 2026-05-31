@@ -9,6 +9,13 @@ import aboutImage from '../assets/images/homebanner.jpg';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+// Hoisted to module scope so the marquee array isn't rebuilt on every
+// scroll-triggered re-render of the landing page.
+const LOGOS = [
+  "STUDIO X", "MONO", "CRAFTER", "AGENCY", "PIXEL", "DESIGN", "MODERN", "ELITE", "VELOCITY", "QUARTZ", "NEON", "ALPHA"
+];
+const MARQUEE_LOGOS = Array(4).fill(LOGOS).flat();
+
 function fadeUp(delay = 0) {
   return {
     initial: { opacity: 0, y: 36 },
@@ -142,9 +149,6 @@ export const LandingPage: React.FC = () => {
     }
   ];
 
-  const logos = [
-    "STUDIO X", "MONO", "CRAFTER", "AGENCY", "PIXEL", "DESIGN", "MODERN", "ELITE", "VELOCITY", "QUARTZ", "NEON", "ALPHA"
-  ];
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] text-foreground selection:bg-accent/20 font-sans">
@@ -262,6 +266,7 @@ export const LandingPage: React.FC = () => {
                   >
                     <img
                       referrerPolicy="no-referrer"
+                      loading="lazy"
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
                       alt={u.name}
                     />
@@ -323,7 +328,7 @@ export const LandingPage: React.FC = () => {
       <section className="py-16 bg-[#1D1D1F] overflow-hidden border-y border-white/5">
         <div className="relative flex overflow-x-hidden">
           <div className="animate-marquee whitespace-nowrap flex items-center py-4">
-            {Array(4).fill(logos).flat().map((logo, i) => (
+            {MARQUEE_LOGOS.map((logo, i) => (
               <span key={i} className="mx-16 text-3xl font-black tracking-[0.25em] text-white/10 hover:text-white/30 transition-all duration-300 cursor-default uppercase hover:scale-110 inline-block">
                 {logo}
               </span>
@@ -449,6 +454,7 @@ export const LandingPage: React.FC = () => {
                   <div className="w-10 h-10 rounded-full border-2 border-white/10 bg-white/5 overflow-hidden">
                     <img
                       referrerPolicy="no-referrer"
+                      loading="lazy"
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${t.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
                       alt={t.name}
                     />

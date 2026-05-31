@@ -15,6 +15,21 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // Split heavyweight vendors out of the main chunk. html2canvas/jspdf
+          // are NOT listed here — they're dynamically imported and already
+          // code-split on demand.
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'clerk': ['@clerk/clerk-react'],
+            'supabase': ['@supabase/supabase-js'],
+            'motion': ['motion'],
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

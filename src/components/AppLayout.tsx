@@ -15,12 +15,12 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useInvoicyPro } from '../hooks/useInvoicyPro';
+import { usePro } from '../context/ProContext';
 import { BrandLogo } from './BrandLogo';
 
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
-  const pro = useInvoicyPro();
+  const pro = usePro();
   const { user } = useUser();
   const [isCollapsed, setIsCollapsed] = useState(() =>
     localStorage.getItem('invoicy_sidebar_collapsed') === 'true'
@@ -198,7 +198,7 @@ export const AppLayout: React.FC = () => {
         </div>
 
         {/* Mobile Bottom Bar */}
-        <nav className="lg:hidden h-24 bg-white border-t border-[#D2D2D7] flex items-center justify-around px-6 shrink-0 pb-safe z-30">
+        <nav className="lg:hidden h-24 bg-white border-t border-[#D2D2D7] flex items-center justify-around px-6 shrink-0 z-30" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
            {navItems.map((item) => (
              <NavLink
                key={item.path}

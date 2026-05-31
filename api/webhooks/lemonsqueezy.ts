@@ -58,9 +58,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing meta.event_name' });
     }
 
+    // Require the service role key — without it, RLS blocks the profile /
+    // processed_webhooks writes and paying users silently stay on the free tier.
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Webhook misconfigured: SUPABASE_SERVICE_ROLE_KEY missing');
+      return res.status(500).json({ error: 'Server misconfigured' });
+    }
     const supabase = createClient(
       process.env.VITE_SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+      process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
     // Idempotency: skip duplicate deliveries. Unique-violation (23505) means

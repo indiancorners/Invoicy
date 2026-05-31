@@ -87,7 +87,7 @@ export const PreviewPage: React.FC = () => {
       <header className="w-full border-b border-border bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Brand */}
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <BrandLogo className="w-8 h-8" />
             <div className="flex flex-col leading-none">
               <span className="font-semibold text-foreground tracking-tight text-sm">
@@ -97,7 +97,7 @@ export const PreviewPage: React.FC = () => {
                 Studio-Grade Invoicing
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* CTA */}
           <Link

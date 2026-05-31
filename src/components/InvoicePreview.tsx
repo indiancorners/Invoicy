@@ -419,7 +419,7 @@ const InvoicePreviewBase: React.FC<InvoicePreviewProps> = ({ data }) => {
                  <div className="w-full h-px bg-gray-200 mb-4"></div>
                  
                  {data.items.map((item) => (
-                    <div key={item.id} className="grid grid-cols-12 text-sm py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                    <div key={item.id} className="grid grid-cols-12 text-sm py-4 border-b border-gray-100 last:border-b-0">
                        <div className="col-span-6 font-medium">{item.description}</div>
                        <div className="col-span-2 text-gray-500">{item.quantity}</div>
                        <div className="col-span-2 text-right text-gray-500">{data.currency}{item.price.toFixed(2)}</div>
@@ -455,7 +455,14 @@ const InvoicePreviewBase: React.FC<InvoicePreviewProps> = ({ data }) => {
         );
       
       default:
-        return null;
+        // Unknown/unsupported theme — render a visible notice rather than a
+        // silent blank (which would also produce an empty export).
+        return (
+          <div className="flex flex-col h-full bg-white text-[#1D1D1F] p-12 items-center justify-center text-center">
+            <p className="text-lg font-semibold">Unsupported theme: {String(data.theme)}</p>
+            <p className="text-sm text-[#6E6E73] mt-2">Pick a theme from Step 1 to preview this invoice.</p>
+          </div>
+        );
     }
   };
 

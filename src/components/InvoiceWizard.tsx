@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { InvoiceData, ThemeType } from '../types';
 import { LayoutGrid, Type, Cpu, Sparkles, Moon, ArrowRight, ArrowLeft, Check, Lock, Activity, Loader2, Star, AlertTriangle, X } from 'lucide-react';
 import { cn, exportToPDF, exportToPNG } from '../lib/utils';
@@ -31,6 +31,17 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
   useEffect(() => {
     setActiveTab('details');
   }, [step]);
+
+  // Remember a Pro theme the user tried to select before upgrading, and apply
+  // it automatically once they become premium (e.g. after returning from checkout).
+  const pendingThemeRef = useRef<ThemeType | null>(null);
+  useEffect(() => {
+    if (pro.isPremium && pendingThemeRef.current) {
+      const theme = pendingThemeRef.current;
+      pendingThemeRef.current = null;
+      setData(d => ({ ...d, theme }));
+    }
+  }, [pro.isPremium]);
 
   const themes: { id: ThemeType; label: string; desc: string; icon: any; color: string; isPremium: boolean }[] = [
     { id: 'minimalist', label: 'Minimalist', desc: 'Free Basic Theme', icon: LayoutGrid, color: 'bg-black', isPremium: false },
@@ -109,6 +120,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
 
   const handleThemeSelect = (theme: typeof themes[0]) => {
     if (theme.isPremium && !pro.isPremium) {
+      pendingThemeRef.current = theme.id; // apply once they upgrade
       setUpgradeReason('pro-theme');
       setShowUpgradeModal(true);
       return;

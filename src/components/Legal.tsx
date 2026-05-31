@@ -29,9 +29,6 @@ export const LegalPage: React.FC<{ title: string; content: string }> = ({ title,
 
         <div className="prose prose-neutral max-w-none">
           <div className="bg-white rounded-2xl p-8 md:p-12 border border-border space-y-6">
-            <p className="text-foreground/70 font-medium leading-relaxed italic">
-              "Invoicy is a performance-driven invoicing engine built for modern studios. We prioritize typography, clarity, and rapid export over bloated CRM features."
-            </p>
             {content.split('\n\n').map((paragraph, i) => (
               <p key={i} className="text-foreground/80 leading-relaxed">
                 {paragraph}

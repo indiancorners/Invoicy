@@ -269,6 +269,7 @@ export const LandingPage: React.FC = () => {
                       loading="lazy"
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
                       alt={u.name}
+                      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
                     />
                   </motion.div>
                 ))}
@@ -457,6 +458,7 @@ export const LandingPage: React.FC = () => {
                       loading="lazy"
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${t.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
                       alt={t.name}
+                      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
                     />
                   </div>
                   <div>
@@ -629,9 +631,9 @@ export const LandingPage: React.FC = () => {
               <button onClick={() => scrollTo('how-it-works')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">How It Works</button>
               <button onClick={() => scrollTo('features')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Features</button>
               <button onClick={() => scrollTo('pricing')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Pricing</button>
-              <button onClick={() => navigate('/about')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">About</button>
-              <button onClick={() => navigate('/privacy')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Privacy</button>
-              <button onClick={() => navigate('/terms')} className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Terms</button>
+              <Link to="/about" className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">About</Link>
+              <Link to="/privacy" className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Privacy</Link>
+              <Link to="/terms" className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Terms</Link>
               <a href="mailto:support@invoicy.studio" className="text-[13px] text-[#6E6E73] hover:text-white transition-colors">Support</a>
             </div>
           </div>

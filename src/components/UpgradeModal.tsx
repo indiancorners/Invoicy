@@ -7,7 +7,7 @@ interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpgrade: () => void;
-  reason?: 'invoice-limit' | 'pro-theme';
+  reason?: 'invoice-limit' | 'pro-theme' | 'export';
 }
 
 const features = [
@@ -24,7 +24,9 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   reason,
 }) => {
   const headline =
-    reason === 'pro-theme' ? 'Unlock Studio Pro' : 'Unlock Studio Pro';
+    reason === 'export' ? 'Unlock PDF & PNG Export'
+    : reason === 'pro-theme' ? 'Unlock All 5 Themes'
+    : 'Unlock Studio Pro';
 
   const handleUpgrade = () => {
     onUpgrade();

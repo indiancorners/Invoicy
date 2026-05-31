@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
+/* Inter is loaded via a non-blocking <link> in index.html — no CSS @import
+   here (a CSS @import is render-blocking and was loading the font twice). */
 @import "tailwindcss";
 
 @theme {

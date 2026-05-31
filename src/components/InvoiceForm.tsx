@@ -179,7 +179,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                 value={data.dueDate}
                 onChange={(v: string) => updateField('dueDate', v)}
               />
-              {data.dueDate && data.date && data.dueDate < data.date && (
+              {data.dueDate && data.date && new Date(data.dueDate) < new Date(data.date) && (
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[#DC2626] mt-1.5 ml-1">
                   Due date is before issue date
                 </p>
@@ -325,7 +325,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                   <input
                     type="number"
                     value={item.quantity}
-                    onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || '')}
+                    onChange={(e) => { const n = parseFloat(e.target.value); updateItem(item.id, 'quantity', Number.isFinite(n) ? n : 0); }}
                     className="w-full bg-white lg:bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl px-4 py-3 lg:py-2.5 text-[14px] lg:text-center focus:bg-white focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all font-medium text-[#1D1D1F]"
                   />
                 </div>
@@ -337,7 +337,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                     <input
                       type="number"
                       value={item.price}
-                      onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || '')}
+                      onChange={(e) => { const n = parseFloat(e.target.value); updateItem(item.id, 'price', Number.isFinite(n) ? n : 0); }}
                       className="w-full bg-white lg:bg-[#F5F5F7] border border-[#D2D2D7] rounded-xl pl-8 pr-4 py-3 lg:py-2.5 text-[14px] text-left lg:text-right focus:bg-white focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all font-medium text-[#1D1D1F]"
                     />
                   </div>

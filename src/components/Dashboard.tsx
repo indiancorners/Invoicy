@@ -4,7 +4,7 @@ import { Plus, Search, FileText, Download, Trash2, Edit2, Share2, TrendingUp, Cl
 import { useNavigate } from 'react-router-dom';
 import { cn, exportToPDF } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { useInvoicyPro } from '../hooks/useInvoicyPro';
+import { usePro } from '../context/ProContext';
 import { toast } from 'sonner';
 import { UpgradeModal } from './UpgradeModal';
 import { InvoicePreview } from './InvoicePreview';
@@ -41,7 +41,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const pro = useInvoicyPro();
+  const pro = usePro();
 
   const downloadingInvoice = useMemo(
     () => invoices.find((i) => i.id === downloadingId) ?? null,
@@ -106,12 +106,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
     return { total, paid, pending, dominantCurrency, mixedCurrencies };
   }, [invoices]);
 
-  const filteredInvoices = invoices.filter(inv =>
+  const filteredInvoices = useMemo(() => invoices.filter(inv =>
     (statusFilter === 'all' || inv.status === statusFilter) &&
     // Bug 10 fix: guard against undefined number/receiver.name
     ((inv.number ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (inv.receiver?.name ?? '').toLowerCase().includes(searchTerm.toLowerCase()))
-  ).sort((a, b) => b.lastModified - a.lastModified);
+  ).sort((a, b) => (b.lastModified ?? 0) - (a.lastModified ?? 0)),
+  [invoices, statusFilter, searchTerm]);
 
   const calculateTotal = (inv: InvoiceData) => {
     // Bug 11 fix: guard against undefined items/taxRate
@@ -290,7 +291,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
                 />
               </div>
               <div className="flex items-center gap-2 bg-subtle p-1.5 rounded-full border border-border overflow-x-auto w-full sm:w-auto">
-                {(['all', 'draft', 'sent', 'overdue', 'paid'] as const).map(status => (
+                {(['all', 'draft', 'sent', 'viewed', 'partially_paid', 'paid', 'overdue', 'cancelled'] as const).map(status => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
@@ -301,7 +302,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
                         : "text-muted hover:text-foreground border border-transparent"
                     )}
                   >
-                    {status}
+                    {status === 'all' ? 'All' : (STATUS_LABELS[status] ?? status)}
                   </button>
                 ))}
               </div>
@@ -405,13 +406,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
 
           {/* Empty State */}
           {filteredInvoices.length === 0 && (
+            invoices.length > 0 ? (
+              <div className="p-20 md:p-32 flex flex-col items-center justify-center text-center">
+                <div className="w-20 h-20 bg-subtle rounded-2xl flex items-center justify-center text-foreground/20 mb-8 border border-border">
+                   <Search size={32} className="relative z-10" />
+                </div>
+                <h3 className="text-3xl font-bold tracking-tighter mb-4 text-foreground uppercase">No matches.</h3>
+                <p className="text-muted text-[10px] md:text-xs max-w-[260px] mx-auto mb-10 leading-relaxed font-bold uppercase tracking-widest">
+                  No invoices match your search or filter.
+                </p>
+                <button
+                  onClick={() => { setStatusFilter('all'); setSearchTerm(''); }}
+                  className="rounded-full bg-[#1D1D1F] text-white font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 px-10 py-4 hover:opacity-80 transition-all active:scale-95"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
             <div className="p-20 md:p-32 flex flex-col items-center justify-center text-center">
               <div className="w-20 h-20 bg-subtle rounded-2xl flex items-center justify-center text-foreground/20 mb-8 border border-border">
                  <FileText size={32} className="relative z-10" />
               </div>
-              <h3 className="text-3xl font-bold tracking-tighter mb-4 text-foreground uppercase">Records Void.</h3>
-              <p className="text-muted text-[10px] md:text-xs max-w-[250px] mx-auto mb-10 leading-relaxed font-bold uppercase tracking-widest">
-                Your invoice vault is empty. Create your first invoice to get started.
+              <h3 className="text-3xl font-bold tracking-tighter mb-4 text-foreground uppercase">No invoices yet.</h3>
+              <p className="text-muted text-[10px] md:text-xs max-w-[260px] mx-auto mb-10 leading-relaxed font-bold uppercase tracking-widest">
+                Your workspace is empty. Create your first invoice — it only takes 60 seconds.
               </p>
               <button
                 onClick={() => navigate('/app/create')}
@@ -420,6 +438,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
                 New Invoice <ArrowUpRight size={16} />
               </button>
             </div>
+            )
           )}
         </div>
       </main>
@@ -429,7 +448,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ invoices, onDelete, onStat
       {downloadingInvoice && (
         <div
           aria-hidden="true"
-          style={{ position: 'fixed', left: '-9999px', top: 0, width: '794px', pointerEvents: 'none', zIndex: -100 }}
+          style={{ position: 'fixed', left: 0, top: 0, width: '794px', pointerEvents: 'none', visibility: 'hidden' }}
         >
           <InvoicePreview data={downloadingInvoice} />
         </div>

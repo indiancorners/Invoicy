@@ -1,7 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+// html2canvas + jsPDF are dynamically imported inside the export functions so
+// they're code-split into a separate async chunk — not loaded on initial page
+// view (they're ~200 KB gzip and only needed when a user actually exports).
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -168,6 +169,7 @@ async function captureCanvas(elementId: string): Promise<HTMLCanvasElement> {
   shadowContainer.appendChild(clone);
 
   try {
+    const html2canvas = (await import('html2canvas')).default;
     await waitForRender();
 
     // CRITICAL: sanitize colors on the LIVE, fully-styled clone BEFORE
@@ -211,6 +213,7 @@ export async function exportToPDF(elementId: string, filename: string) {
   }
 
   try {
+    const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pdfWidthMm = 210;
     const pdfHeightMm = 297;

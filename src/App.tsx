@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useAuth, SignIn, SignUp } from '@clerk/clerk-react';
 import { Loader2 } from 'lucide-react';
@@ -25,6 +25,28 @@ import { toast } from 'sonner';
 import { DEFAULT_INVOICE, InvoiceData, InvoiceStatus, newPublicToken } from './types';
 import { fetchInvoices, saveInvoice, deleteInvoice } from './lib/invoiceService';
 import { useInvoicyPro } from './hooks/useInvoicyPro';
+import { ProProvider } from './context/ProContext';
+
+// Hoisted out of AppContent: declaring it inside AppContent makes React treat
+// it as a new component type on every render, remounting InvoiceWizard and
+// discarding unsaved edits whenever any AppContent state changes.
+interface EditRouteProps {
+  invoices: InvoiceData[];
+  isLoading: boolean;
+  onSave: (data: InvoiceData) => Promise<void>;
+}
+function EditRoute({ invoices, isLoading, onSave }: EditRouteProps) {
+  const { id } = useParams();
+  const invoice = invoices.find(i => i.id === id);
+  if (isLoading) return (
+    <div className="flex-1 min-h-screen bg-base flex flex-col items-center justify-center gap-4">
+      <Loader2 size={32} className="text-accent animate-spin" />
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Loading Invoice…</p>
+    </div>
+  );
+  if (!invoice) return <Navigate to="/app" replace />;
+  return <InvoiceWizard initialData={invoice} onSave={onSave} />;
+}
 
 function AppContent() {
   const { isSignedIn, userId, isLoaded } = useAuth();
@@ -43,7 +65,9 @@ function AppContent() {
       .then(data => setInvoices(data))
       .catch(err => {
         console.error("Failed to fetch invoices from Supabase:", err);
-        setFetchError('Failed to load invoices. Check your connection and retry.');
+        const code = err?.code ? ` [${err.code}]` : '';
+        const detail = err?.message || err?.error_description || err?.hint || String(err);
+        setFetchError(`Failed to load invoices${code}: ${detail}`);
       })
       .finally(() => setIsLoading(false));
   };
@@ -92,6 +116,7 @@ function AppContent() {
     } catch (e) {
       console.error("Failed to save invoice:", e);
       toast.error('Failed to save invoice. Please try again.');
+      throw e; // let the wizard keep the user on the form instead of navigating away
     }
   };
 
@@ -124,22 +149,11 @@ function AppContent() {
     }
   };
 
-  const EditRoute = () => {
-    const { id } = useParams();
-    const invoice = invoices.find(i => i.id === id);
-    if (!invoice && !isLoading) {
-        return <Navigate to="/app" replace />;
-    }
-    if (isLoading) return (
-      <div className="flex-1 min-h-screen bg-base flex flex-col items-center justify-center gap-4">
-        <Loader2 size={32} className="text-accent animate-spin" />
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Loading Invoice…</p>
-      </div>
-    );
-    return <InvoiceWizard initialData={invoice!} onSave={handleSaveInvoice} />;
-  };
+  // Stable template so a new publicToken/number isn't generated on every render.
+  const newInvoiceTemplate = useMemo(() => DEFAULT_INVOICE(), []);
 
   return (
+    <ProProvider value={pro}>
     <div className="min-h-screen w-full">
       <Toaster position="top-center" richColors />
       <Routes>
@@ -182,8 +196,8 @@ function AppContent() {
         <Route element={<AuthGuard />}>
           <Route element={<AppLayout />}>
             <Route path="/app" element={<Dashboard invoices={invoices} onDelete={handleDeleteInvoice} onStatusChange={handleUpdateStatus} isLoading={isLoading} fetchError={fetchError} onRetryFetch={loadInvoices} />} />
-            <Route path="/app/create" element={<InvoiceWizard initialData={DEFAULT_INVOICE()} onSave={handleSaveInvoice} />} />
-            <Route path="/app/edit/:id" element={<EditRoute />} />
+            <Route path="/app/create" element={<InvoiceWizard initialData={newInvoiceTemplate} onSave={handleSaveInvoice} />} />
+            <Route path="/app/edit/:id" element={<EditRoute invoices={invoices} isLoading={isLoading} onSave={handleSaveInvoice} />} />
             <Route path="/app/settings" element={<Settings />} />
           </Route>
         </Route>
@@ -192,6 +206,7 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
+    </ProProvider>
   );
 }
 

@@ -9,7 +9,7 @@ import { BrandLogo } from './BrandLogo';
 import { UpgradeModal } from './UpgradeModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { useInvoicyPro } from '../hooks/useInvoicyPro';
+import { usePro } from '../context/ProContext';
 
 interface InvoiceWizardProps {
   initialData: InvoiceData;
@@ -23,9 +23,9 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
   const [exportingType, setExportingType] = useState<'pdf' | 'png' | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'preview'>('details');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState<'pro-theme' | 'invoice-limit'>('pro-theme');
+  const [upgradeReason, setUpgradeReason] = useState<'pro-theme' | 'invoice-limit' | 'export'>('pro-theme');
   const navigate = useNavigate();
-  const pro = useInvoicyPro();
+  const pro = usePro();
 
   // Reset tab to details whenever step changes
   useEffect(() => {
@@ -64,17 +64,24 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
     return { checks, isValid: checks.every((c) => c.ok) };
   }, [data]);
 
-  const handleFinalSave = () => {
+  const handleFinalSave = async () => {
     if (!validation.isValid) {
       toast.warning('Some details are incomplete — saving as a draft. Resolve the checklist before sending.');
     }
-    onSave(data);
-    navigate('/app');
+    try {
+      await onSave(data);
+      // onSave navigates to /app on success.
+    } catch {
+      // onSave shows its own error toast; stay on the wizard so work isn't lost.
+    }
   };
 
   const handleExport = async (type: 'pdf' | 'png') => {
     setExportingType(type);
     setIsExporting(true);
+    // The capture node is only mounted while exporting — wait for React to
+    // commit it before html2canvas (in captureCanvas) looks it up by id.
+    await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
     const toastId = toast.loading(`Preparing high-res ${type.toUpperCase()}...`);
 
     try {
@@ -111,13 +118,16 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
 
   return (
     <>
-    {/* Hidden export capture — fixed off-screen; id="invoice-capture" lives on InvoicePreview root */}
-    <div
-      aria-hidden="true"
-      style={{ position: 'fixed', left: '-9999px', top: 0, width: '794px', pointerEvents: 'none', zIndex: -100 }}
-    >
-      <InvoicePreview data={data} />
-    </div>
+    {/* Hidden export capture — mounted only while exporting so it doesn't
+        re-render on every keystroke. id="invoice-capture" lives on InvoicePreview root. */}
+    {isExporting && (
+      <div
+        aria-hidden="true"
+        style={{ position: 'fixed', left: 0, top: 0, width: '794px', pointerEvents: 'none', visibility: 'hidden' }}
+      >
+        <InvoicePreview data={data} />
+      </div>
+    )}
     <div className="flex flex-col h-[100dvh] bg-[#FAFAFA] overflow-hidden relative">
       {/* Export loading overlay */}
       <AnimatePresence>
@@ -291,7 +301,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                     </div>
                   ) : (
                     <div className="w-full overflow-x-auto overflow-y-auto flex-grow custom-scrollbar py-6">
-                      <div className="mx-auto" style={{ zoom: 0.7, width: 'fit-content' }}>
+                      <div className="mx-auto" style={{ transform: 'scale(0.7)', transformOrigin: 'top center', width: 'fit-content' }}>
                         <InvoicePreview data={data} />
                       </div>
                     </div>
@@ -318,7 +328,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                             disabled={isExporting}
                             onClick={() => {
                               if (!pro.isPremium) {
-                                setUpgradeReason('pro-theme');
+                                setUpgradeReason('export');
                                 setShowUpgradeModal(true);
                                 return;
                               }
@@ -355,7 +365,7 @@ export const InvoiceWizard: React.FC<InvoiceWizardProps> = ({ initialData, onSav
                             disabled={isExporting}
                             onClick={() => {
                               if (!pro.isPremium) {
-                                setUpgradeReason('pro-theme');
+                                setUpgradeReason('export');
                                 setShowUpgradeModal(true);
                                 return;
                               }

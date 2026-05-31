@@ -5,7 +5,7 @@ interface InvoicePreviewProps {
   data: InvoiceData;
 }
 
-export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
+const InvoicePreviewBase: React.FC<InvoicePreviewProps> = ({ data }) => {
   const calculations = useMemo(() => {
     const subtotal = (data.items ?? []).reduce((sum, item) => sum + (item.quantity ?? 0) * (item.price ?? 0), 0);
     const taxAmount = subtotal * (data.taxRate / 100);
@@ -468,3 +468,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
     </div>
   );
 };
+
+// Memoized: avoids re-rendering the heavy preview tree when an unrelated parent
+// state change occurs (re-renders only when `data` actually changes).
+export const InvoicePreview = React.memo(InvoicePreviewBase);
